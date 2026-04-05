@@ -1,0 +1,84 @@
+{
+  "info": {
+    "name": "Restaurant Ordering Backend - Free Dispute Collection",
+    "_postman_id": "bounty-escrow-agent-restaurant-example",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health check",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Customer signup",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/signup",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "signup"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Customer login",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "login"
+          ]
+        }
+      }
+    },
+    {
+      "name": "List menu",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/menu",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "menu"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Create order",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/orders",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "orders"
+          ]
+        }
+      }
+    }
+  ]
+}

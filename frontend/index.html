@@ -1,0 +1,3732 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="name" content="Bounty Escrow Agent" />
+<title>Bounty Escrow Agent | Minimal Ops Desk</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  /* ── CSS Variables & Theming ─────────────────────────── */
+  :root[data-theme="dark"] {
+    --bg-base: #000000;
+    --bg-surface: #080808;
+    --bg-surface-hover: #111111;
+    --text-primary: #ffffff;
+    --text-secondary: #9a9a9a;
+    --border: rgba(255, 255, 255, 0.16);
+    --accent: #ffffff;
+    --accent-hover: #d9d9d9;
+    --success: #ffffff;
+    --warning: #d0d0d0;
+    --danger: #b8b8b8;
+    --shadow: 0 18px 60px rgba(0, 0, 0, 0.52);
+    --glass-blur: blur(0px);
+  }
+
+  :root[data-theme="light"] {
+    --bg-base: #ffffff;
+    --bg-surface: #f7f7f7;
+    --bg-surface-hover: #efefef;
+    --text-primary: #000000;
+    --text-secondary: #656565;
+    --border: rgba(0, 0, 0, 0.16);
+    --accent: #000000;
+    --accent-hover: #222222;
+    --success: #000000;
+    --warning: #2f2f2f;
+    --danger: #4f4f4f;
+    --shadow: 0 16px 42px rgba(0, 0, 0, 0.08);
+    --glass-blur: blur(0px);
+  }
+
+  /* ── Reset & Typography ──────────────────────────────── */
+  * { box-sizing: border-box; margin: 0; padding: 0; transition: background-color 0.24s ease, color 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease, opacity 0.24s ease; }
+  body {
+    font-family: 'IBM Plex Mono', monospace;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+  body.theme-transitioning {
+    overflow: hidden;
+  }
+  
+  /* Modern Mesh Gradient Background Overlay */
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: -2;
+    background:
+      radial-gradient(circle at top left, rgba(255,255,255,0.06), transparent 32%),
+      linear-gradient(180deg, rgba(255,255,255,0.02), transparent 28%),
+      var(--bg-base);
+    pointer-events: none;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0; z-index: -1;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: 0.35;
+    pointer-events: none;
+  }
+  .theme-transition-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    pointer-events: none;
+    opacity: 0;
+    background:
+      linear-gradient(135deg,
+        rgba(255,255,255,0.08) 0%,
+        rgba(255,255,255,0.18) 35%,
+        rgba(255,255,255,0.06) 65%,
+        rgba(255,255,255,0) 100%);
+    mix-blend-mode: soft-light;
+  }
+  body.theme-transitioning .theme-transition-layer {
+    animation: themeWash 520ms ease-out forwards;
+  }
+  .app-stage {
+    position: relative;
+    isolation: isolate;
+  }
+  body.theme-transitioning .app-stage {
+    animation: appSettle 520ms ease-out;
+  }
+  @keyframes themeWash {
+    0% {
+      opacity: 0;
+      transform: scale(1.015);
+    }
+    40% {
+      opacity: 0.9;
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1);
+    }
+  }
+  @keyframes appSettle {
+    0% { transform: scale(1) translateY(0); filter: blur(0); }
+    50% { transform: scale(0.996) translateY(2px); filter: blur(0.4px); }
+    100% { transform: scale(1) translateY(0); filter: blur(0); }
+  }
+
+  /* ── Icons ───────────────────────────────────────────── */
+  .algo-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 0.72em; height: 0.72em; vertical-align: -0.05em; flex-shrink: 0;
+  }
+  .algo-icon svg { fill: currentColor; width: 100%; height: 100%; }
+  /* Large variant for big reward figures */
+  .algo-icon-lg {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 0.65em; height: 0.65em; vertical-align: -0.04em; flex-shrink: 0;
+  }
+  .algo-icon-lg svg { fill: currentColor; width: 100%; height: 100%; }
+  /* Mono SVG icon utility — inherits color, sits on the text baseline */
+  .ico {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 1em; height: 1em; vertical-align: -0.125em; flex-shrink: 0;
+  }
+  .ico svg { stroke: currentColor; fill: none; width: 100%; height: 100%; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ── Layout ──────────────────────────────────────────── */
+  .container { max-width: 1180px; margin: 0 auto; padding: 28px 22px 56px; position: relative; z-index: 1; }
+
+  /* ── Header ──────────────────────────────────────────── */
+  header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 0 0 26px; margin-bottom: 26px; border-bottom: 1px solid var(--border); gap: 18px;
+  }
+  .brand { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; display: flex; align-items: center; gap: 12px; letter-spacing: -0.03em; }
+  .brand-mark {
+    width: 34px; height: 34px; border-radius: 12px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--bg-surface); color: var(--text-primary);
+    border: 1px solid var(--border); box-shadow: var(--shadow);
+    flex-shrink: 0;
+  }
+  .brand-mark .algo-icon {
+    width: 18px; height: 18px;
+  }
+  .user-badge {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--bg-surface);
+    padding: 10px 14px 10px 10px; border-radius: 18px; border: 1px solid var(--border);
+    min-width: 0;
+    max-width: min(100%, 420px);
+  }
+  .avatar {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    color: #111; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 17px;
+  }
+  .user-info { display: flex; flex-direction: column; font-size: 12px; }
+  .user-name {
+    font-weight: 700;
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    line-height: 1.35;
+    word-break: break-all;
+    overflow-wrap: anywhere;
+    text-transform: none;
+  }
+  .user-meta { color: var(--text-secondary); font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; }
+
+  /* ── Glassmorphism Panels ────────────────────────────── */
+  .glass-panel {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent 55%), var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    padding: 28px; margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  /* Profile: allow long wallet addresses to show fully (no clipping) */
+  .glass-panel.profile-dash { overflow: visible; }
+  .glass-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.04), transparent 45%);
+    pointer-events: none;
+  }
+  .glass-panel > * { position: relative; z-index: 1; }
+  .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; gap: 16px; }
+  .panel-title { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; letter-spacing: -0.03em; }
+
+  /* ── Authentication Overlay ──────────────────────────── */
+  .auth-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,0.62); backdrop-filter: blur(10px);
+    display: flex; justify-content: center; align-items: center; padding: 20px;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+  }
+  .auth-overlay.active { opacity: 1; pointer-events: all; }
+  .auth-card {
+      background: var(--bg-surface); width: 100%; max-width: 500px;
+      border-radius: 28px; padding: 32px; border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      transform: translateY(16px); transition: transform 0.3s ease;
+    }
+  .auth-overlay.active .auth-card { transform: translateY(0); }
+  .auth-header {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      margin-bottom: 24px;
+    }
+  .auth-close {
+      width: 42px; height: 42px; border-radius: 999px; border: 1px solid var(--border);
+      background: transparent; color: var(--text-primary); display: inline-flex;
+      align-items: center; justify-content: center; cursor: pointer; font-size: 20px;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+  .auth-close:hover { background: var(--bg-surface-hover); border-color: var(--text-secondary); }
+  
+  .auth-tabs { display: flex; gap: 8px; margin-bottom: 28px; background: transparent; border: 1px solid var(--border); padding: 6px; border-radius: 16px; }
+  .auth-tab {
+    flex: 1; text-align: center; padding: 10px; border-radius: 10px; font-weight: 700; font-size: 13px;
+    cursor: pointer; color: var(--text-secondary); transition: all 0.2s;
+  }
+  .auth-tab.active { background: var(--accent); color: #111; box-shadow: none; }
+
+  /* ── Forms ───────────────────────────────────────────── */
+  .form-group { margin-bottom: 18px; }
+  .form-group label { display: block; font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.12em; }
+  .form-control {
+    width: 100%; padding: 15px 16px; border-radius: 16px;
+    background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+    color: var(--text-primary); font-family: 'IBM Plex Mono', monospace; font-size: 14px;
+    transition: all 0.2s; outline: none;
+  }
+  .form-control:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12); }
+  select.form-control {
+    appearance: none;
+    cursor: pointer;
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
+  }
+  select.form-control option {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+  }
+  textarea.form-control { min-height: 100px; resize: vertical; }
+
+  /* ── Buttons ─────────────────────────────────────────── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 13px 20px; border-radius: 16px; font-weight: 700; font-size: 12px;
+    cursor: pointer; border: none; outline: none; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; border: 1px solid var(--border);
+  }
+  .btn-primary { background: var(--accent); color: var(--bg-base); box-shadow: none; border-color: transparent; }
+  .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: none; }
+  .btn-secondary { background: transparent; color: var(--text-primary); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--bg-surface-hover); border-color: var(--text-secondary); }
+  .btn-success { background: var(--success); color: #121212; box-shadow: none; border-color: transparent; }
+  .btn-success:hover { filter: brightness(1.05); transform: translateY(-1px); }
+  .btn-danger { background: var(--danger); color: #121212; border-color: transparent; }
+  .btn-danger:hover { filter: brightness(1.06); transform: translateY(-1px); }
+  .btn-full { width: 100%; }
+  
+  /* ── Tabs (Main App) ─────────────────────────────────── */
+  .nav-tabs { display: flex; gap: 10px; margin-bottom: 26px; overflow-x: auto; scrollbar-width: none; }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab {
+    padding: 10px 14px; font-weight: 700; font-size: 12px; color: var(--text-secondary);
+    cursor: pointer; position: relative; border: 1px solid var(--border); background: transparent; white-space: nowrap; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .nav-tab.active { color: var(--bg-base); background: var(--accent); border-color: transparent; }
+  .nav-tab.active::after {
+    content: none;
+  }
+
+  /* ── Bounties List ───────────────────────────────────── */
+  .bounty-card {
+    background: var(--bg-surface); border: 1px solid var(--border);
+    border-radius: 24px; padding: 22px; margin-bottom: 14px;
+    transition: transform 0.22s ease, border-color 0.22s ease, background-color 0.22s ease; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: stretch; gap: 18px;
+  }
+  .bounty-card:hover { border-color: var(--accent); transform: translateY(-2px); background: var(--bg-surface-hover); }
+  .bounty-title { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 12px; color: var(--text-primary); max-width: 32rem; }
+  .bounty-meta { display: flex; gap: 12px; font-size: 11px; color: var(--text-secondary); align-items: center; flex-wrap: wrap; text-transform: uppercase; letter-spacing: 0.09em; }
+  .badge { padding: 5px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; border: 1px solid var(--border); }
+  .badge-tag { background: rgba(255,255,255,0.05); color: var(--text-primary); }
+  .bounty-reward { min-width: 155px; font-family: 'Space Grotesk', sans-serif; font-size: 38px; font-weight: 700; color: var(--text-primary); display: flex; align-items: flex-end; justify-content: flex-end; gap: 8px; letter-spacing: -0.04em; }
+
+  /* ── Timeline / Tracking ──────────────────────────────── */
+  .tracker { display: flex; align-items: center; justify-content: space-between; margin: 36px 0; position: relative; gap: 12px; }
+  .tracker::before {
+    content: ''; position: absolute; top: 18px; left: 36px; right: 36px; height: 1px;
+    background: var(--border); z-index: 0;
+  }
+  .track-step { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1; flex: 1; min-width: 0; }
+  .track-icon {
+    width: 38px; height: 38px; border-radius: 12px;
+    background: var(--bg-base); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; color: var(--text-secondary);
+    transition: all 0.24s;
+  }
+  .track-step.done .track-icon { background: var(--accent); border-color: transparent; color: var(--bg-base); }
+  .track-step.active .track-icon { border-color: var(--accent); color: var(--accent); box-shadow: none; }
+  .track-label { margin-top: 10px; font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; text-align: center; }
+  .track-step.done .track-label { color: var(--text-primary); }
+  .track-step.active .track-label { color: var(--accent); }
+
+  /* ── Utilities ───────────────────────────────────────── */
+  .text-highlight { color: var(--accent); }
+  .flex-between { display: flex; justify-content: space-between; align-items: center; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .mt-4 { margin-top: 24px; }
+  .theme-toggle {
+    background: transparent; border: 1px solid var(--border); color: var(--text-primary);
+    width: 42px; height: 42px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; box-shadow: none; font-size: 16px;
+  }
+  .theme-toggle:hover { background: var(--bg-surface-hover); }
+  .theme-toggle svg {
+    width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+
+  /* ── Profile dashboard & mission log (structure + motion) ─ */
+  @keyframes dashFadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .glass-panel.profile-dash {
+    max-width: min(600px, 100%);
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    padding-inline: clamp(18px, 4vw, 28px);
+  }
+  .profile-dash__avatar {
+    width: clamp(72px, 20vw, 96px);
+    height: clamp(72px, 20vw, 96px);
+    font-size: clamp(28px, 8vw, 40px);
+    margin: 0 auto clamp(18px, 4vw, 24px) auto;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent);
+    color: #111;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    animation: dashFadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    opacity: 0;
+  }
+  .profile-dash__title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.35rem, 5vw, 2.125rem);
+    font-weight: 700;
+    margin: 0 0 8px;
+    letter-spacing: -0.04em;
+    animation: dashFadeUp 0.52s cubic-bezier(0.22, 1, 0.36, 1) 0.04s forwards;
+    opacity: 0;
+  }
+  .profile-dash__address-wrap {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 0 clamp(18px, 4vw, 28px);
+    text-align: left;
+    animation: dashFadeUp 0.52s cubic-bezier(0.22, 1, 0.36, 1) 0.08s forwards;
+    opacity: 0;
+  }
+  .profile-dash__address-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+  .profile-dash__address-full {
+    margin: 0;
+    padding: 14px 16px;
+    font-family: monospace;
+    font-size: clamp(11px, 2.6vw, 13px);
+    line-height: 1.5;
+    word-break: break-all;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    color: var(--text-primary);
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    user-select: all;
+    cursor: text;
+  }
+  .profile-dash__address-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+    align-items: center;
+  }
+  .profile-dash__funding {
+    margin-top: clamp(18px, 4vw, 24px);
+    padding: clamp(14px, 3vw, 16px);
+    background: var(--bg-base);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    text-align: left;
+    font-size: clamp(0.72rem, 2.2vw, 0.8125rem);
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+  .profile-dash__funding strong { color: var(--text-primary); }
+  .profile-dash__funding a { color: var(--accent); text-decoration: underline; }
+  .profile-dash__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 148px), 1fr));
+    gap: clamp(12px, 3vw, 18px);
+    text-align: left;
+  }
+  .profile-dash__stat {
+    background: var(--bg-base);
+    padding: clamp(16px, 4vw, 20px);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    transform-origin: center bottom;
+    animation: dashFadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    opacity: 0;
+  }
+  .profile-dash__stat:nth-child(1) { animation-delay: 0.1s; }
+  .profile-dash__stat:nth-child(2) { animation-delay: 0.16s; }
+  .profile-dash__stat:nth-child(3) { animation-delay: 0.22s; }
+  .profile-dash__stat-label {
+    color: var(--text-secondary);
+    font-size: clamp(0.65rem, 2vw, 0.75rem);
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    letter-spacing: 0.06em;
+  }
+  .profile-dash__stat-value {
+    font-size: clamp(1.5rem, 6vw, 2rem);
+    font-weight: 800;
+    line-height: 1.1;
+  }
+  .profile-dash__stat-value--algo .algo-bal-unit {
+    font-size: 0.42em;
+    font-weight: 700;
+    margin-left: 0.28em;
+    opacity: 0.72;
+    letter-spacing: 0.04em;
+    vertical-align: 0.12em;
+  }
+  .profile-dash__stat-sub {
+    font-size: clamp(0.8rem, 2.5vw, 0.875rem);
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+  .profile-dash__rules {
+    margin-top: clamp(18px, 4vw, 24px);
+    padding: clamp(14px, 3vw, 16px);
+    background: var(--bg-base);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    text-align: left;
+    font-size: clamp(0.72rem, 2.2vw, 0.8125rem);
+    color: var(--text-secondary);
+    line-height: 1.65;
+    animation: dashFadeUp 0.58s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
+    opacity: 0;
+    transform-origin: top center;
+  }
+  .profile-dash__rules strong { color: var(--text-primary); }
+
+  .dashboard-mission .panel-header {
+    animation: dashFadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    opacity: 0;
+  }
+  .dashboard-mission .bounty-card {
+    animation: dashFadeUp 0.48s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    opacity: 0;
+  }
+  /* panel-header is first child; bounty cards start at child 2 */
+  .dashboard-mission .bounty-card:nth-child(2) { animation-delay: 0.06s; }
+  .dashboard-mission .bounty-card:nth-child(3) { animation-delay: 0.11s; }
+  .dashboard-mission .bounty-card:nth-child(4) { animation-delay: 0.16s; }
+  .dashboard-mission .bounty-card:nth-child(5) { animation-delay: 0.21s; }
+  .dashboard-mission .bounty-card:nth-child(6) { animation-delay: 0.26s; }
+  .dashboard-mission .bounty-card:nth-child(n+7) { animation-delay: 0.3s; }
+  .dashboard-empty {
+    text-align: center;
+    padding: clamp(40px, 12vw, 64px) clamp(16px, 5vw, 24px);
+    animation: dashFadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    opacity: 0;
+  }
+  .dashboard-empty h3 { margin-bottom: 16px; font-size: clamp(1.1rem, 3.5vw, 1.25rem); }
+  .dashboard-empty p {
+    color: var(--text-secondary);
+    margin-bottom: clamp(18px, 4vw, 24px);
+    font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+    max-width: 32ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .profile-dash__avatar,
+    .profile-dash__title,
+    .profile-dash__address,
+    .profile-dash__stat,
+    .profile-dash__rules,
+    .dashboard-mission .panel-header,
+    .dashboard-mission .bounty-card,
+    .dashboard-empty {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+
+  /* ── Responsive ──────────────────────────────────────── */
+  @media (max-width: 768px) {
+    .container { padding: 20px 14px 40px; }
+    .bounty-card { flex-direction: column; align-items: flex-start; }
+    .bounty-card > div:last-child { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    header { flex-wrap: wrap; }
+    .header-actions { width: 100%; justify-content: space-between; margin-top: 12px; flex-wrap: wrap; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .tracker { flex-wrap: wrap; gap: 18px; }
+    .tracker::before { display: none; }
+    .brand { font-size: 24px; }
+    .bounty-reward { font-size: 32px; justify-content: flex-start; }
+  }
+  @media (max-width: 520px) {
+    .profile-dash__stats { grid-template-columns: 1fr; }
+  }
+
+  /* ── Ops Console (Post-Login Dashboard) ──────────────── */
+  .ops-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+  .ops-metric {
+    padding: 20px 22px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+  }
+  .ops-metric__label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--text-secondary); margin-bottom: 8px;
+  }
+  .ops-metric__value {
+    font-family: 'Space Grotesk', sans-serif; font-size: 36px; font-weight: 700;
+    line-height: 1; letter-spacing: -0.04em; color: var(--text-primary);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .ops-metric__sub {
+    font-size: 11px; color: var(--text-secondary); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .ops-panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .ops-panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    overflow: hidden;
+  }
+  .ops-panel__head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+  }
+  .ops-panel__title {
+    font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .ops-panel__badge {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--text-secondary); background: var(--bg-base);
+    padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border);
+  }
+  .ops-row {
+    display: grid;
+    grid-template-columns: 20px 1fr auto;
+    align-items: start;
+    gap: 12px;
+    padding: 13px 20px;
+    cursor: pointer;
+    transition: background-color 0.16s ease;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .ops-row:last-child { border-bottom: none; }
+  .ops-row:hover { background: var(--bg-surface-hover); }
+  .ops-row__icon {
+    width: 20px; height: 20px; display: flex; align-items: flex-start; justify-content: center; padding-top: 1px; flex-shrink: 0;
+  }
+  .ops-row__icon svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .ops-row__title {
+    font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .ops-row__meta { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; }
+  .ops-row__reward {
+    font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700;
+    color: var(--text-primary); display: flex; align-items: center; gap: 4px; white-space: nowrap;
+  }
+  .ops-empty {
+    padding: 40px 20px; text-align: center; color: var(--text-secondary); font-size: 13px;
+  }
+  @media (max-width: 768px) {
+    .ops-grid { grid-template-columns: 1fr 1fr; }
+    .ops-panels { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 480px) {
+    .ops-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── Landing Page Utilities ────────────────────────────── */
+  .landing-hero-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(48px, 8vw, 96px);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    color: var(--text-primary);
+  }
+  .landing-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .landing-step {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .step-num {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--bg-surface-hover);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+  }
+  .step-num.bg-primary {
+    background: var(--accent);
+    color: var(--bg-base);
+    border-color: transparent;
+  }
+  .step-card {
+    flex-grow: 1;
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .step-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .step-desc {
+    color: var(--text-secondary);
+    font-size: 14px;
+    max-width: 600px;
+  }
+  @media (max-width: 768px) {
+    .landing-step { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .step-card { width: 100%; flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div class="theme-transition-layer" aria-hidden="true"></div>
+<div id="app" class="app-stage"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/algosdk@2.7.0/dist/browser/algosdk.min.js"></script>
+<script src="src/algoClient.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════════
+   STATUS ENUM — escrow lifecycle (local demo)
+   ══════════════════════════════════════════════════════════ */
+const STATUS_OPEN      = 0;
+const STATUS_ACCEPTED  = 1;
+const STATUS_SUBMITTED = 2;
+const STATUS_APPROVED  = 3;
+const STATUS_REJECTED  = 4;
+const STATUS_DISPUTED  = 5;
+const STATUS_RESOLVED_WORKER = 6;
+const STATUS_RESOLVED_CREATOR = 7;
+const STATUS_OPTED_OUT = 8;
+const STATUS_CANCELLED = 9;
+const STATUS_DISSOLVED_SETTLED = STATUS_RESOLVED_WORKER;
+const STATUS_DISSOLVED_CANCELLED = STATUS_OPTED_OUT;
+
+const STATUS_LABEL = {
+  0: "Open",       1: "Accepted",    2: "Submitted",
+  3: "Approved",   4: "Rejected",    5: "In Dispute ⚖️",
+  6: "Worker Won ✅", 7: "Creator Won", 8: "Opted Out", 9: "Cancelled",
+};
+const STATUS_COLOR = {
+  0: "#ffffff", 1: "#d8d8d8", 2: "#c8c8c8", 3: "#ffffff",
+  4: "#a0a0a0", 5: "#e2e2e2", 6: "#ffffff", 7: "#b8b8b8", 8: "#8d8d8d", 9: "#a8a29e",
+};
+
+function isSettledStatus(status) {
+  return status === STATUS_APPROVED || status === STATUS_RESOLVED_WORKER;
+}
+
+function isCancelledStatus(status) {
+  return (
+    status === STATUS_RESOLVED_CREATOR ||
+    status === STATUS_OPTED_OUT ||
+    status === STATUS_CANCELLED
+  );
+}
+
+/* ══════════════════════════════════════════════════════════
+   CREDIT SCORE — Integer deltas from contract
+   ══════════════════════════════════════════════════════════ */
+const SCORE_START        = 100;
+const SCORE_APPROVED     =  50;
+const SCORE_AUTO         =  20;
+const SCORE_DISPUTE_WIN  =  30;
+const SCORE_DISPUTE_LOSS = -80;
+const SCORE_OPT_OUT      = -10;
+const SCORE_WITHDRAW_ACCEPT = -5; /* before submit — matches contract SCORE_WITHDRAW_ACCEPT */
+const SCORE_CREATOR_CANCEL_ACTIVE = -12; /* worker had accepted; creator cancels before deadline */
+const SCORE_FAILED_TO_SUBMIT = -30; /* accepted, deadline passed, creator cancels — matches contract */
+const SCORE_EXPIRE       = -30;
+
+/* ══════════════════════════════════════════════════════════
+   DEMO TIMERS — align with contract.AUTO_RELEASE_DELAY (300s) on LocalNet
+   ══════════════════════════════════════════════════════════ */
+// Must match contract.AUTO_RELEASE_DELAY (300s) for dispute + auto-release windows
+const DISPUTE_WINDOW_MS = 5 * 60 * 1000;
+const AUTO_RELEASE_SILENCE_MS = 5 * 60 * 1000;
+
+/* ══════════════════════════════════════════════════════════
+   DATABASE LAYER (localStorage)
+   ══════════════════════════════════════════════════════════ */
+const DB_KEY = "bounty_escrow_db_v7";
+/** Creator device only — raw test suite text for oracle (not in shared db). */
+const BE_TESTS_PREFIX = "be_tests_";
+
+function createSampleBounties() {
+  const now = Date.now();
+  const day = 24 * 60 * 60 * 1000;
+  return [
+    {
+      id: "sample-open-ui-audit",
+      title: "UI audit for escrow landing page",
+      desc: "Review the current landing page, list spacing issues, and propose a tighter black-and-white layout pass with screenshots and annotated notes.",
+      reward: 35,
+      deadline: now + 6 * day,
+      createdAt: now - 2 * day,
+      creator: "ALGO...EX1",
+      contributor: null,
+      status: STATUS_OPEN,
+      tag: "Frontend Bug Fix",
+      minTier: "Open",
+      criteriaHash: "sample-criteria-ui-audit",
+      testSuiteHash: "sample-tests-ui-audit",
+      workIpfsHash: null,
+      acceptedAt: null,
+      submittedAt: null,
+      rejectedAt: null,
+      disputedAt: null,
+      resolvedAt: null,
+      deliverableEncrypted: null,
+    },
+    {
+      id: "sample-accepted-docs",
+      title: "Write setup guide for LocalNet contributors",
+      desc: "Draft a concise getting-started guide for contributors joining the escrow workflow, including funding, sign-in, and submission steps.",
+      reward: 22,
+      deadline: now + 4 * day,
+      createdAt: now - 3 * day,
+      creator: "ALGO...EX1",
+      contributor: "ALGO...EX2",
+      status: STATUS_ACCEPTED,
+      tag: "Documentation & QA",
+      minTier: "Bronze",
+      criteriaHash: "sample-criteria-docs",
+      testSuiteHash: "sample-tests-docs",
+      workIpfsHash: null,
+      acceptedAt: now - 18 * 60 * 60 * 1000,
+      submittedAt: null,
+      rejectedAt: null,
+      disputedAt: null,
+      resolvedAt: null,
+      deliverableEncrypted: null,
+    },
+    {
+      id: "sample-submitted-bugfix",
+      title: "Fix dark-mode dropdown contrast",
+      desc: "Repair the category select contrast issue in dark mode and provide before/after proof plus a short explanation of the CSS change.",
+      reward: 18,
+      deadline: now + 2 * day,
+      createdAt: now - 5 * day,
+      creator: "ALGO...EX1",
+      contributor: "ALGO...EX2",
+      status: STATUS_SUBMITTED,
+      tag: "Bug Bounty",
+      minTier: "Open",
+      criteriaHash: "sample-criteria-dropdown",
+      testSuiteHash: "sample-tests-dropdown",
+      workIpfsHash: null,
+      acceptedAt: now - 2 * day,
+      submittedAt: now - 3 * 60 * 60 * 1000,
+      rejectedAt: null,
+      disputedAt: null,
+      resolvedAt: null,
+      deliverableEncrypted: null,
+    },
+    {
+      id: "sample-disputed-copy",
+      title: "Rewrite homepage protocol copy",
+      desc: "Replace the old protocol summary with clearer product language while preserving the stark visual tone of the homepage.",
+      reward: 28,
+      deadline: now + day,
+      createdAt: now - 6 * day,
+      creator: "ALGO...EX1",
+      contributor: "ALGO...EX2",
+      status: STATUS_DISPUTED,
+      tag: "Documentation & QA",
+      minTier: "Bronze",
+      criteriaHash: "sample-criteria-copy",
+      testSuiteHash: "sample-tests-copy",
+      workIpfsHash: null,
+      acceptedAt: now - 4 * day,
+      submittedAt: now - 2 * day,
+      rejectedAt: now - 20 * 60 * 1000,
+      disputedAt: now - 8 * 60 * 1000,
+      resolvedAt: null,
+      deliverableEncrypted: null,
+    },
+    {
+      id: "sample-approved-api",
+      title: "Add transaction history endpoint mock",
+      desc: "Create a mock endpoint contract for transaction history cards and return representative amount, status, and timestamp fields.",
+      reward: 42,
+      deadline: now - day,
+      createdAt: now - 9 * day,
+      creator: "ALGO...EX1",
+      contributor: "ALGO...EX2",
+      status: STATUS_APPROVED,
+      tag: "Software Dev & Open Source",
+      minTier: "Silver",
+      criteriaHash: "sample-criteria-api",
+      testSuiteHash: "sample-tests-api",
+      workIpfsHash: null,
+      acceptedAt: now - 8 * day,
+      submittedAt: now - 7 * day,
+      rejectedAt: null,
+      disputedAt: null,
+      resolvedAt: now - 6 * day,
+      deliverableEncrypted: null,
+    },
+    {
+      id: "sample-open-mobile-pass",
+      title: "Mobile spacing pass for bounty detail screen",
+      desc: "Tighten mobile spacing, badge wrapping, and reward alignment on the bounty detail screen without changing the monochrome visual system.",
+      reward: 26,
+      deadline: now + 3 * day,
+      createdAt: now - 12 * 60 * 60 * 1000,
+      creator: "ALGO...EX1",
+      contributor: null,
+      status: STATUS_OPEN,
+      tag: "Frontend Bug Fix",
+      minTier: "Bronze",
+      criteriaHash: "sample-criteria-mobile-pass",
+      testSuiteHash: "sample-tests-mobile-pass",
+      workIpfsHash: null,
+      acceptedAt: null,
+      submittedAt: null,
+      rejectedAt: null,
+      disputedAt: null,
+      resolvedAt: null,
+      deliverableEncrypted: null,
+    },
+    {
+      id: "sample-accepted-analytics",
+      title: "Add bounty analytics summary cards",
+      desc: "Design and implement summary cards for open, submitted, disputed, and settled bounty counts using the existing monochrome layout language.",
+      reward: 31,
+      deadline: now + 5 * day,
+      createdAt: now - 4 * day,
+      creator: "ALGO...EX1",
+      contributor: "ALGO...EX2",
+      status: STATUS_ACCEPTED,
+      tag: "API & Backend",
+      minTier: "Silver",
+      criteriaHash: "sample-criteria-analytics",
+      testSuiteHash: "sample-tests-analytics",
+      workIpfsHash: null,
+      acceptedAt: now - 14 * 60 * 60 * 1000,
+      submittedAt: null,
+      rejectedAt: null,
+      disputedAt: null,
+      resolvedAt: null,
+      deliverableEncrypted: null,
+    },
+    {
+      id: "sample-resolved-worker-brand",
+      title: "Brand-safe icon correction pack",
+      desc: "Replace placeholder crypto glyphs with accurate Algorand marks and update the icon sizing rules across header, cards, and profile views.",
+      reward: 24,
+      deadline: now - 2 * day,
+      createdAt: now - 10 * day,
+      creator: "ALGO...EX1",
+      contributor: "ALGO...EX2",
+      status: STATUS_RESOLVED_WORKER,
+      tag: "Frontend Bug Fix",
+      minTier: "Bronze",
+      criteriaHash: "sample-criteria-brand-pack",
+      testSuiteHash: "sample-tests-brand-pack",
+      workIpfsHash: null,
+      acceptedAt: now - 9 * day,
+      submittedAt: now - 8 * day,
+      rejectedAt: now - 7 * day,
+      disputedAt: now - 7 * day + 20 * 60 * 1000,
+      resolvedAt: now - 6 * day,
+      deliverableEncrypted: null,
+    },
+    {
+      id: "sample-cancelled-research",
+      title: "Competitor research for escrow homepage",
+      desc: "Compile a brief comparison of escrow, freelance, and bug-bounty flows to sharpen homepage messaging and feature positioning.",
+      reward: 19,
+      deadline: now - 3 * day,
+      createdAt: now - 7 * day,
+      creator: "ALGO...EX1",
+      contributor: "ALGO...EX2",
+      status: STATUS_CANCELLED,
+      tag: "Documentation & QA",
+      minTier: "Open",
+      criteriaHash: "sample-criteria-research",
+      testSuiteHash: "sample-tests-research",
+      workIpfsHash: null,
+      acceptedAt: now - 6 * day,
+      submittedAt: null,
+      rejectedAt: null,
+      disputedAt: null,
+      resolvedAt: now - 5 * day,
+      deliverableEncrypted: null,
+    },
+    {
+      id: "sample-open-ci-pipeline-hardening",
+      title: "Harden GitHub CI pipeline for bounty verdicts",
+      desc: "Repository: ssaurabh10/Bounty-Escrow-Agent-Trial. Update .github/workflows/code_check.yml to ensure flake8, pylint, mypy, security reality check, AI test generation, and PR bot verdict all run reliably on pull_request.",
+      reward: 55,
+      deadline: now + 4 * day,
+      createdAt: now - 8 * 60 * 60 * 1000,
+      creator: "ALGO...EX1",
+      contributor: null,
+      status: STATUS_OPEN,
+      tag: "GitHub CI Pipeline",
+      minTier: "Bronze",
+      criteriaHash: "sample-criteria-ci-hardening",
+      testSuiteHash: "sample-tests-ci-hardening",
+      workIpfsHash: null,
+      acceptedAt: null,
+      submittedAt: null,
+      rejectedAt: null,
+      disputedAt: null,
+      resolvedAt: null,
+      deliverableEncrypted: null,
+    },
+    {
+      id: "sample-submitted-security-reality-check",
+      title: "Tune secret detection to avoid LocalNet false positives",
+      desc: "Repository: ssaurabh10/Bounty-Escrow-Agent-Trial. Improve scripts/ci/security_reality_check.py so it still catches real secrets but does not fail on known LocalNet placeholder tokens.",
+      reward: 48,
+      deadline: now + 2 * day,
+      createdAt: now - 3 * day,
+      creator: "ALGO...EX1",
+      contributor: "ALGO...EX2",
+      status: STATUS_SUBMITTED,
+      tag: "Security Reality Check",
+      minTier: "Silver",
+      criteriaHash: "sample-criteria-security-tuning",
+      testSuiteHash: "sample-tests-security-tuning",
+      workIpfsHash: "https://github.com/ssaurabh10/Bounty-Escrow-Agent-Trial/pull/14",
+      acceptedAt: now - 2 * day,
+      submittedAt: now - 5 * 60 * 60 * 1000,
+      rejectedAt: null,
+      disputedAt: null,
+      resolvedAt: null,
+      deliverableEncrypted: null,
+    },
+    {
+      id: "sample-disputed-bot-comment-verdict",
+      title: "Fix PR bot verdict comment missing despite CI pass",
+      desc: "Repository: ssaurabh10/Bounty-Escrow-Agent-Trial. Ensure actions/github-script comment is posted on pull_request runs and update oracle checks so mentor demo shows CI success with bot evidence.",
+      reward: 62,
+      deadline: now + day,
+      createdAt: now - 4 * day,
+      creator: "ALGO...EX1",
+      contributor: "ALGO...EX2",
+      status: STATUS_DISPUTED,
+      tag: "Bot Verdict & PR Automation",
+      minTier: "Gold",
+      criteriaHash: "sample-criteria-bot-comment",
+      testSuiteHash: "sample-tests-bot-comment",
+      workIpfsHash: "https://github.com/ssaurabh10/Bounty-Escrow-Agent-Trial/pull/15",
+      acceptedAt: now - 3 * day,
+      submittedAt: now - 2 * day,
+      rejectedAt: now - 20 * 60 * 1000,
+      disputedAt: now - 7 * 60 * 1000,
+      resolvedAt: null,
+      deliverableEncrypted: null,
+    },
+    {
+      id: "sample-accepted-website-quality-checks",
+      title: "Add website.html lint checks into code_check workflow",
+      desc: "Repository: ssaurabh10/Bounty-Escrow-Agent-Trial. Extend workflow with HTML validation for website.html and include a smoke check so CI verdict reflects website quality too.",
+      reward: 37,
+      deadline: now + 3 * day,
+      createdAt: now - day,
+      creator: "ALGO...EX1",
+      contributor: "ALGO...EX2",
+      status: STATUS_ACCEPTED,
+      tag: "Website / Frontend Fix",
+      minTier: "Open",
+      criteriaHash: "sample-criteria-website-ci",
+      testSuiteHash: "sample-tests-website-ci",
+      workIpfsHash: null,
+      acceptedAt: now - 10 * 60 * 60 * 1000,
+      submittedAt: null,
+      rejectedAt: null,
+      disputedAt: null,
+      resolvedAt: null,
+      deliverableEncrypted: null,
+    },
+  ];
+}
+
+const INITIAL_DB = {
+  users: {
+    "ALGO...EX1": { address: "ALGO...EX1", name: "Alice", password: "demo", role: "creator", creditScore: 150 },
+    "ALGO...EX2": { address: "ALGO...EX2", name: "Bob",   password: "demo", role: "contributor", creditScore: 200 },
+    "ALGO...EX3": { address: "ALGO...EX3", name: "Carol", password: "demo", role: "oracle", creditScore: 320 }
+  },
+  bounties: createSampleBounties()
+};
+
+let db = JSON.parse(localStorage.getItem(DB_KEY));
+if (!db || !db.users) { db = INITIAL_DB; saveDB(); }
+db.bounties = (db.bounties || []).filter((bounty) => bounty.id != null && bounty.id !== "");
+if (!db.bounties.length) {
+  db.bounties = createSampleBounties();
+}
+for (const sample of createSampleBounties()) {
+  if (!db.bounties.some((bounty) => bounty.id === sample.id)) {
+    db.bounties.push(sample);
+  }
+}
+for (const u of Object.values(db.users)) {
+  if (!u || !u.address) continue;
+  const n = (u.name || "").trim();
+  if (n.includes("…") || n.includes("...")) u.name = "";
+}
+saveDB();
+
+function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+function getUser(addr) { return db.users[addr]; }
+/** Label for UI: human alias if set, otherwise full wallet address (never middle-ellipsis). */
+function userLabel(u) {
+  if (!u) return "Unknown";
+  const addr = (u.address || "").trim();
+  const alias = (u.name || "").trim();
+  if (alias && alias !== addr) return alias;
+  return addr || alias || "Unknown";
+}
+
+function collectPrefixedStorage(prefix) {
+  const out = {};
+  for (let i = 0; i < localStorage.length; i += 1) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith(prefix)) {
+      out[key] = localStorage.getItem(key);
+    }
+  }
+  return out;
+}
+
+function buildLocalBackupPayload() {
+  return {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    db,
+    oracleTests: collectPrefixedStorage(BE_TESTS_PREFIX),
+  };
+}
+
+function downloadLocalBackup() {
+  try {
+    const payload = buildLocalBackupPayload();
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    a.href = url;
+    a.download = `bounty-escrow-backup-${stamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    alert("Could not create backup: " + (error?.message || error));
+  }
+}
+
+function triggerBackupImport() {
+  const input = document.getElementById("backupImportInput");
+  if (input) input.click();
+}
+
+async function handleBackupImport(e) {
+  const file = e?.target?.files?.[0];
+  if (!file) return;
+  try {
+    const raw = await file.text();
+    const payload = JSON.parse(raw);
+    if (!payload || typeof payload !== "object" || !payload.db || !payload.db.users) {
+      throw new Error("Backup file is missing the expected bounty database payload.");
+    }
+
+    db = payload.db;
+    localStorage.setItem(DB_KEY, JSON.stringify(db));
+
+    const oracleTests = payload.oracleTests || {};
+    Object.entries(oracleTests).forEach(([key, value]) => {
+      if (key.startsWith(BE_TESTS_PREFIX) && typeof value === "string") {
+        localStorage.setItem(key, value);
+      }
+    });
+
+    if (state.currentUser?.address && db.users[state.currentUser.address]) {
+      state.currentUser = db.users[state.currentUser.address];
+    }
+
+    render();
+    alert("Backup restored. Your local bounty data is back in this browser.");
+  } catch (error) {
+    alert("Could not import backup: " + (error?.message || error));
+  } finally {
+    if (e?.target) e.target.value = "";
+  }
+}
+
+function applyScoreDelta(address, delta) {
+  if (!address || delta === undefined || delta === 0) return;
+  if (!db.users[address]) {
+    db.users[address] = {
+      address,
+      name: "",
+      password: "",
+      role: "contributor",
+      creditScore: SCORE_START,
+    };
+  }
+  const u = db.users[address];
+  let s = (u.creditScore ?? SCORE_START) + delta;
+  s = Math.max(0, Math.min(1000, s));
+  u.creditScore = s;
+  saveDB();
+}
+
+/* ── Score helpers ──────────────────────────────────────── */
+function getUserScore(u)   { return u ? (u.creditScore ?? SCORE_START) : SCORE_START; }
+function getTier(score) {
+  if (score >= 800) return "Gold";
+  if (score >= 500) return "Silver";
+  if (score >= 200) return "Bronze";
+  return "Open";
+}
+function getTierThreshold(t) {
+  return {"Gold":800,"Silver":500,"Bronze":200,"Open":0}[t]||0;
+}
+function getTierColor(tier) {
+  return {"Gold":"#FFD700","Silver":"#C0C0C0","Bronze":"#CD7F32","Open":"#888"}[tier]||"#888";
+}
+
+function setCachedUserScore(address, score) {
+  if (!address) return;
+  const existing = db.users[address];
+  if (!existing) {
+    db.users[address] = {
+      address,
+      name: "",
+      password: "",
+      role: "contributor",
+      creditScore: score,
+    };
+  } else {
+    existing.creditScore = score;
+  }
+}
+
+async function refreshCreditScore(address, { rerender = false } = {}) {
+  if (!address) return SCORE_START;
+  const score = getUserScore(getUser(address)) ?? SCORE_START;
+  if (state.currentUser?.address === address) {
+    state.currentUser = db.users[address];
+  }
+  if (rerender) render();
+  return score;
+}
+
+async function refreshKnownCreditScores({ rerender = false } = {}) {
+  if (state.scoreRefreshInFlight) return;
+  state.scoreRefreshInFlight = true;
+  try {
+    if (state.currentUser) {
+      state.currentUser = db.users[state.currentUser.address] || state.currentUser;
+    }
+    if (rerender) render();
+  } finally {
+    state.scoreRefreshInFlight = false;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   STATE & ICONS
+   ══════════════════════════════════════════════════════════ */
+const svgAlgo = `<span class="algo-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.874 0h3.673l1.61 5.963h3.789l-2.588 4.5 3.624 13.533h-3.757l-2.44-9.077-5.247 9.079H8.345l8.107-14.051-1.304-4.878L4.215 24H.018Z"/></svg></span>`;
+const themeIconSun = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2.5v3"></path><path d="M12 18.5v3"></path><path d="M21.5 12h-3"></path><path d="M5.5 12h-3"></path><path d="M18.72 5.28l-2.12 2.12"></path><path d="M7.4 16.6l-2.12 2.12"></path><path d="M18.72 18.72l-2.12-2.12"></path><path d="M7.4 7.4L5.28 5.28"></path></svg>`;
+const themeIconMoon = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.2A8.5 8.5 0 1 1 11.3 4a7.1 7.1 0 0 0 8.7 11.2Z"></path></svg>`;
+
+let state = {
+  currentUser: null,
+  currentSigner: null,
+  authModalOpen: false,
+  authMode: "login",
+  activeTab: "landing",
+  viewingBounty: null,
+  submitModalOpen: false,
+  submitBountyId: null,
+  scoreRefreshInFlight: false,
+  localnetAccounts: [],
+  localnetLoading: false,
+  /** LocalNet algod balance for current address (via wallet API); microAlgos. */
+  algoBalanceMicro: null,
+  algoBalanceLoading: false,
+  algoBalanceError: null,
+  networkMode: "localnet",
+  plagiarismResult: null,
+  plagiarismLoading: false,
+};
+
+let autoReleaseTimers = {};
+const C = window.algoClient || null;
+const DEPLOY_INFO_CANDIDATES = [
+  "../smart_contracts/bounty_escrow/deploy_info.json",
+  "/smart_contracts/bounty_escrow/deploy_info.json",
+  "./smart_contracts/bounty_escrow/deploy_info.json",
+];
+
+function requireAlgoClient() {
+  if (!C) {
+    throw new Error("Algorand client failed to load. Refresh the page from localhost, not file://.");
+  }
+  return C;
+}
+
+async function fetchDeployInfo() {
+  const errors = [];
+  for (const candidate of DEPLOY_INFO_CANDIDATES) {
+    const url = new URL(candidate, window.location.href).href;
+    const res = await fetch(url).catch((error) => {
+      errors.push(`${candidate}: ${error?.message || error}`);
+      return null;
+    });
+    if (!res) continue;
+    if (!res.ok) {
+      errors.push(`${candidate}: ${res.status} ${res.statusText}`);
+      continue;
+    }
+    return res.json();
+  }
+  throw new Error(`Could not load deploy_info.json from known paths. Tried: ${errors.join(" | ")}`);
+}
+
+const OBJECTIVE_BOUNTY_CATEGORIES = [
+  "Software development and open source",
+  "Debugging",
+  "Backend",
+  "Cyber Security",
+];
+
+function upsertWalletUser({ address, role, name = "", password = "" }) {
+  const existing = db.users[address] || {};
+  db.users[address] = {
+    address,
+    name: existing.name || name || `${role} ${String(address).slice(0, 6)}`,
+    password: existing.password || password,
+    role: role || existing.role || "contributor",
+    creditScore: existing.creditScore ?? SCORE_START,
+  };
+  saveDB();
+  return db.users[address];
+}
+
+function formatSignerLabel() {
+  const signer = state.currentSigner;
+  if (!signer?.address) return "No signer";
+  return `Wallet · ${signer.address.slice(0, 6)}…${signer.address.slice(-4)}`;
+}
+
+function isValidAlgorandAddress(value) {
+  if (!value || typeof value !== "string") return false;
+  try {
+    algosdk.decodeAddress(value.trim());
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function normalizeAlgorandAddress(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+async function hashText(text) {
+  const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text || ""));
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function getOraclePlaintext(b) {
+  return b?.workIpfsHash || "";
+}
+
+function getOracleTestCasesRaw(b) {
+  if (!b?.id) return "";
+  return localStorage.getItem(BE_TESTS_PREFIX + b.id) || b.testCasesRaw || "";
+}
+
+/** File extensions we treat as single-file source links for GitHub raw fetch. */
+const GITHUB_SOURCE_EXTS = [".c", ".cpp", ".js", ".ts", ".go", ".rs", ".py"];
+
+function normalizeGithubRawUrl(urlString) {
+  let u = urlString.trim();
+  if (u.includes("github.com") && !u.includes("raw.githubusercontent.com")) {
+    u = u.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/");
+  }
+  return u;
+}
+
+function isGithubSourceDeliverableUrl(text) {
+  const t = (text || "").trim();
+  return (
+    /^https?:\/\//i.test(t) &&
+    (t.includes("github.com") || t.includes("raw.githubusercontent.com")) &&
+    GITHUB_SOURCE_EXTS.some((ext) => t.endsWith(ext))
+  );
+}
+
+/** True if URL ref is probably a branch/tag, not a commit SHA (mutable). */
+function githubUrlLooksMutableRef(urlString) {
+  try {
+    const u = new URL(urlString.trim());
+    const path = u.pathname;
+    if (path.includes("/blob/")) {
+      const rest = path.split("/blob/")[1] || "";
+      const segs = rest.split("/").filter(Boolean);
+      const ref = segs[0];
+      if (ref && /^[a-f0-9]{7,40}$/i.test(ref)) return false;
+      return true;
+    }
+    if (u.hostname === "raw.githubusercontent.com") {
+      const parts = path.split("/").filter(Boolean);
+      if (parts.length >= 3 && /^[a-f0-9]{7,40}$/i.test(parts[2])) return false;
+      return true;
+    }
+    return true;
+  } catch {
+    return true;
+  }
+}
+
+/** Fetch raw file bytes as text and hash — freezes “what was at this URL at submit time”. */
+async function tryFreezeGithubContent(urlString) {
+  const rawUrl = normalizeGithubRawUrl(urlString);
+  const res = await fetch(rawUrl);
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} fetching ${rawUrl}`);
+  }
+  const text = await res.text();
+  const contentHash = await hashText(text);
+  return { rawUrl, contentHash, byteLength: text.length };
+}
+
+function upsertBountyRecord(record) {
+  const existingIndex = db.bounties.findIndex((bounty) => bounty.id === record.id);
+  if (existingIndex >= 0) {
+    db.bounties[existingIndex] = { ...db.bounties[existingIndex], ...record };
+  } else {
+    db.bounties.unshift(record);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   AUTH ACTIONS
+   ══════════════════════════════════════════════════════════ */
+function openAuth() { state.authModalOpen = true; render(); }
+function closeAuth() { state.authModalOpen = false; render(); }
+function simulateWalletConnect() { return "ALGO-" + Math.random().toString(36).substring(2, 8).toUpperCase(); }
+
+async function tryBindLocalnetSignerForUser(user) {
+  if (!user) return null;
+  const client = requireAlgoClient();
+  client.applyLocalnetAlgod();
+  state.networkMode = "localnet";
+
+  try {
+    const accounts = await client.getKMDAccounts();
+    if (!accounts?.length) return null;
+
+    let targetAddress = normalizeAlgorandAddress(user.address);
+
+    if (!isValidAlgorandAddress(targetAddress)) {
+      let deployInfo = null;
+      try {
+        deployInfo = await fetchDeployInfo();
+      } catch {}
+
+      const roleKey =
+        user.role === "creator" ? "creator" :
+        user.role === "contributor" ? "worker" :
+        user.role === "oracle" ? "oracle" :
+        null;
+
+      targetAddress =
+        normalizeAlgorandAddress((roleKey && deployInfo?.accounts?.[roleKey]) || "") ||
+        (roleKey === "creator" ? accounts[0]?.address :
+         roleKey === "worker" ? accounts[1]?.address :
+         roleKey === "oracle" ? accounts[2]?.address :
+         accounts[0]?.address) ||
+        "";
+
+      if (targetAddress) {
+        const remapped = upsertWalletUser({
+          address: targetAddress,
+          role: user.role,
+          name: user.name,
+          password: user.password,
+        });
+        for (const key of Object.keys(db.users)) {
+          if (key !== targetAddress && db.users[key]?.name === user.name && db.users[key]?.password === user.password) {
+            delete db.users[key];
+          }
+        }
+        saveDB();
+        user = remapped;
+      }
+    }
+
+    const account = accounts.find((entry) => entry.address === targetAddress);
+    if (!account) return user;
+
+    state.currentSigner = client.wrapKmdAccount(account);
+    if (user.address !== targetAddress) {
+      user = upsertWalletUser({
+        address: targetAddress,
+        role: user.role,
+        name: user.name,
+        password: user.password,
+      });
+      saveDB();
+    }
+    return user;
+  } catch (error) {
+    console.warn("LocalNet signer auto-bind failed", error);
+    return user;
+  }
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const nameInput = e.target.alias.value.toLowerCase().trim();
+  const passInput = e.target.password.value;
+  const userMatch = Object.values(db.users).find(u => u.name.toLowerCase() === nameInput && u.password === passInput);
+  if (!userMatch) { alert("Invalid Alias or Password!"); return; }
+  state.currentUser = await tryBindLocalnetSignerForUser(userMatch);
+  state.authModalOpen = false;
+  render();
+  refreshCreditScore(state.currentUser.address, { rerender: true }).catch(console.error);
+}
+
+async function handleRegister(e) {
+  e.preventDefault();
+  const addr = simulateWalletConnect();
+  const name = e.target.name.value.trim();
+  const password = e.target.password.value;
+  const role = e.target.role.value;
+  if (Object.values(db.users).some(u => u.name.toLowerCase() === name.toLowerCase())) {
+    alert("Alias already taken!"); return;
+  }
+  db.users[addr] = { address: addr, name, password, role, creditScore: SCORE_START };
+  saveDB();
+  state.currentUser = await tryBindLocalnetSignerForUser(db.users[addr]);
+  state.authModalOpen = false;
+  render();
+  refreshCreditScore(state.currentUser.address, { rerender: true }).catch(console.error);
+}
+
+async function handlePeraConnect(mode="login") {
+  try {
+    const client = requireAlgoClient();
+    client.applyTestnetAlgod();
+    state.networkMode = "testnet";
+    const { PeraWalletConnect } = await import('https://esm.sh/@perawallet/connect@1.3.4?bundle');
+    const peraWallet = new PeraWalletConnect();
+    const newAccounts = await peraWallet.connect();
+
+    if (newAccounts.length === 0) {
+      alert("No accounts authorized.");
+      return;
+    }
+
+    const addr = newAccounts[0];
+    let existingUser = db.users[addr];
+
+    if (!existingUser) {
+      const roleSelect = document.getElementById("registerRoleSelect");
+      const role = mode === "register" && roleSelect ? roleSelect.value : "contributor";
+      existingUser = upsertWalletUser({ address: addr, role, name: `Pera ${role}` });
+    } else {
+      saveDB();
+    }
+
+    state.currentSigner = client.wrapPeraAccount(peraWallet, addr);
+    state.currentUser = existingUser;
+    state.authModalOpen = false;
+    render();
+    refreshCreditScore(addr, { rerender: true }).catch(console.error);
+  } catch (error) {
+    console.error("Wallet connection failed", error);
+    if (error?.data?.type !== "CONNECT_MODAL_CLOSED") {
+      alert("Error connecting to Pera Wallet: " + error.message);
+    }
+  }
+}
+
+function logout() {
+  state.currentUser = null;
+  state.currentSigner = null;
+  state.activeTab = "browse";
+  render();
+}
+function switchTab(t) {
+  state.activeTab = t;
+  const openProfile = t === "profile" && state.currentUser;
+  if (openProfile && isLikelyAlgorandAddress(state.currentUser.address)) {
+    state.algoBalanceLoading = true;
+  }
+  render();
+  if (openProfile) refreshAlgoBalance();
+}
+
+async function readUploadedTextFile(file) {
+  if (!file) return "";
+  const text = await file.text();
+  return text || "";
+}
+
+function tokenizeForSimilarity(text) {
+  return (text || "")
+    .toLowerCase()
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .split(/\s+/)
+    .filter((token) => token.length >= 3);
+}
+
+function uniqueOrderedMatches(sourceTokens, targetSet) {
+  const out = [];
+  const seen = new Set();
+  for (const token of sourceTokens) {
+    if (targetSet.has(token) && !seen.has(token)) {
+      seen.add(token);
+      out.push(token);
+    }
+  }
+  return out;
+}
+
+function scoreFrontendPlagiarism(referenceText, submittedText) {
+  const refTokens = tokenizeForSimilarity(referenceText);
+  const subTokens = tokenizeForSimilarity(submittedText);
+  const refSet = new Set(refTokens);
+  const subSet = new Set(subTokens);
+  const overlap = uniqueOrderedMatches(refTokens, subSet);
+  const overlapRatio =
+    refSet.size > 0 ? overlap.length / Math.max(refSet.size, 1) : 0;
+
+  const headingMatches = [
+    "admission",
+    "academics",
+    "departments",
+    "campus",
+    "placements",
+    "notices",
+    "about",
+    "contact",
+  ].filter((token) => refSet.has(token) && subSet.has(token));
+
+  const structureSignals = [
+    /hero/i.test(referenceText) && /hero/i.test(submittedText),
+    /placement/i.test(referenceText) && /placement/i.test(submittedText),
+    /department/i.test(referenceText) && /department/i.test(submittedText),
+    /notice/i.test(referenceText) && /notice/i.test(submittedText),
+  ].filter(Boolean).length;
+
+  let score = 0;
+  if (overlapRatio >= 0.7) score += 4;
+  else if (overlapRatio >= 0.5) score += 3;
+  else if (overlapRatio >= 0.35) score += 2;
+  else if (overlapRatio >= 0.2) score += 1;
+
+  if (headingMatches.length >= 5) score += 2;
+  else if (headingMatches.length >= 3) score += 1;
+
+  if (structureSignals >= 3) score += 2;
+  else if (structureSignals >= 2) score += 1;
+
+  let verdict = "PASS";
+  if (score >= 7) verdict = "FAIL";
+  else if (score >= 4) verdict = "REVIEW";
+
+  return {
+    verdict,
+    score,
+    overlapRatio,
+    overlapCount: overlap.length,
+    uniqueReferenceTokens: refSet.size,
+    uniqueSubmittedTokens: subSet.size,
+    headingMatches,
+    overlapSample: overlap.slice(0, 18),
+  };
+}
+
+async function handleFrontendPlagiarismCheck(e) {
+  e.preventDefault();
+  const refFile = e.target.referenceFile.files?.[0];
+  const submittedFile = e.target.submittedFile.files?.[0];
+  if (!refFile || !submittedFile) {
+    alert("Upload both the reference frontend file and the submitted frontend file.");
+    return;
+  }
+
+  const allowed = [".html", ".htm", ".css", ".js", ".jsx", ".ts", ".tsx", ".txt"];
+  const refName = refFile.name.toLowerCase();
+  const submittedName = submittedFile.name.toLowerCase();
+  if (!allowed.some((ext) => refName.endsWith(ext)) || !allowed.some((ext) => submittedName.endsWith(ext))) {
+    alert("Frontend plagiarism check currently supports HTML, CSS, JS, TS, JSX, TSX, and TXT files only.");
+    return;
+  }
+
+  state.plagiarismLoading = true;
+  state.plagiarismResult = null;
+  render();
+
+  try {
+    const [referenceText, submittedText] = await Promise.all([
+      readUploadedTextFile(refFile),
+      readUploadedTextFile(submittedFile),
+    ]);
+
+    const analysis = scoreFrontendPlagiarism(referenceText, submittedText);
+    state.plagiarismResult = {
+      domain: "Frontend / Website",
+      referenceName: refFile.name,
+      submittedName: submittedFile.name,
+      checkedAt: Date.now(),
+      ...analysis,
+    };
+  } catch (error) {
+    alert("Could not run plagiarism check: " + (error?.message || error));
+  } finally {
+    state.plagiarismLoading = false;
+    render();
+  }
+}
+
+function renderPlagiarismCheck() {
+  const result = state.plagiarismResult;
+  const verdictColor =
+    result?.verdict === "FAIL"
+      ? "var(--danger)"
+      : result?.verdict === "REVIEW"
+        ? "var(--warning)"
+        : "var(--success)";
+
+  return `
+    <div class="glass-panel">
+      <div class="panel-header">
+        <h2 class="panel-title">Plagiarism Check</h2>
+        <div style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.12em;">frontend domain only</div>
+      </div>
+      <p style="color:var(--text-secondary); font-size:13px; margin:-6px 0 20px; line-height:1.7;">
+        This checker is limited to <strong>frontend / website</strong> submissions. Upload one reference file and one submitted file to compare structural and textual similarity for mentor demos and dispute reviews.
+      </p>
+
+      <form onsubmit="handleFrontendPlagiarismCheck(event)">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px;">
+          <div class="form-group">
+            <label>Reference frontend file</label>
+            <input type="file" name="referenceFile" class="form-control" accept=".html,.htm,.css,.js,.jsx,.ts,.tsx,.txt" required>
+          </div>
+          <div class="form-group">
+            <label>Submitted frontend file</label>
+            <input type="file" name="submittedFile" class="form-control" accept=".html,.htm,.css,.js,.jsx,.ts,.tsx,.txt" required>
+          </div>
+        </div>
+        <div style="margin-top:8px; font-size:12px; color:var(--text-secondary); line-height:1.6;">
+          Good for landing pages, institutional websites, dashboard HTML exports, and similar frontend deliverables. Not for PDFs, images, or generic text plagiarism.
+        </div>
+        <div style="display:flex; gap:12px; margin-top:20px; flex-wrap:wrap;">
+          <button type="submit" class="btn btn-primary">${state.plagiarismLoading ? "Checking..." : "Run frontend plagiarism check"}</button>
+          <button type="button" class="btn btn-secondary" onclick="state.plagiarismResult=null; render()">Clear result</button>
+        </div>
+      </form>
+
+      ${
+        result
+          ? `<div style="margin-top:24px; padding:18px; border-radius:18px; border:1px solid var(--border); background:rgba(255,255,255,0.02);">
+              <div style="display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; align-items:flex-start;">
+                <div>
+                  <div style="font-size:12px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.12em;">Verdict</div>
+                  <div style="margin-top:6px; font-size:32px; font-weight:800; color:${verdictColor};">${escapeHtml(result.verdict)}</div>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(2,minmax(120px,1fr)); gap:12px; flex:1; min-width:260px;">
+                  <div><div style="font-size:11px; color:var(--text-secondary); text-transform:uppercase;">Score</div><div style="margin-top:4px; font-size:18px; color:var(--text-primary);">${result.score}/8</div></div>
+                  <div><div style="font-size:11px; color:var(--text-secondary); text-transform:uppercase;">Overlap</div><div style="margin-top:4px; font-size:18px; color:var(--text-primary);">${Math.round(result.overlapRatio * 100)}%</div></div>
+                  <div><div style="font-size:11px; color:var(--text-secondary); text-transform:uppercase;">Reference</div><div style="margin-top:4px; font-size:13px; color:var(--text-primary);">${escapeHtml(result.referenceName)}</div></div>
+                  <div><div style="font-size:11px; color:var(--text-secondary); text-transform:uppercase;">Submitted</div><div style="margin-top:4px; font-size:13px; color:var(--text-primary);">${escapeHtml(result.submittedName)}</div></div>
+                </div>
+              </div>
+
+              <div style="margin-top:18px; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px;">
+                <div style="padding:14px; border-radius:14px; border:1px solid var(--border); background:var(--bg-base);">
+                  <div style="font-size:11px; color:var(--text-secondary); text-transform:uppercase;">Frontend domain</div>
+                  <div style="margin-top:6px; color:var(--text-primary);">${escapeHtml(result.domain)}</div>
+                </div>
+                <div style="padding:14px; border-radius:14px; border:1px solid var(--border); background:var(--bg-base);">
+                  <div style="font-size:11px; color:var(--text-secondary); text-transform:uppercase;">Shared heading signals</div>
+                  <div style="margin-top:6px; color:var(--text-primary);">${result.headingMatches.length ? escapeHtml(result.headingMatches.join(", ")) : "None detected"}</div>
+                </div>
+              </div>
+
+              <div style="margin-top:18px;">
+                <div style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.12em;">Matched frontend tokens</div>
+                <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:8px;">
+                  ${
+                    result.overlapSample.length
+                      ? result.overlapSample.map((token) => `<span class="badge badge-tag">${escapeHtml(token)}</span>`).join("")
+                      : `<span style="color:var(--text-secondary);">No significant overlap sample found.</span>`
+                  }
+                </div>
+              </div>
+
+              <div style="margin-top:18px; font-size:12px; color:var(--text-secondary); line-height:1.7;">
+                Use this as a mentor-facing similarity signal, not a legal copyright ruling. Best for checking whether a submitted frontend appears substantially copied from a known reference.
+              </div>
+            </div>`
+          : `<div style="margin-top:22px; padding:18px; border-radius:18px; border:1px solid var(--border); background:rgba(255,255,255,0.02); color:var(--text-secondary);">
+              Upload two frontend files to generate a similarity score and verdict for this domain.
+            </div>`
+      }
+    </div>
+  `;
+}
+function toggleTheme() {
+  if (document.body.classList.contains("theme-transitioning")) return;
+  const root = document.documentElement;
+  const nextTheme = root.getAttribute('data-theme') === "dark" ? "light" : "dark";
+  document.body.classList.add("theme-transitioning");
+  root.setAttribute('data-theme', nextTheme);
+  render();
+  window.setTimeout(() => {
+    document.body.classList.remove("theme-transitioning");
+  }, 540);
+  }
+
+/* ══════════════════════════════════════════════════════════
+   CONTRACT ACTIONS — mirrors BOUNTY_ESCROW_FINAL.py
+   ══════════════════════════════════════════════════════════ */
+
+const MAX_BOUNTY_ATTACH_BYTES = 120 * 1024; // per file
+const MAX_BOUNTY_ATTACH_TOTAL = 400 * 1024;
+const MAX_BOUNTY_ATTACH_COUNT = 6;
+
+async function readBountyAttachmentFiles(fileList) {
+  const arr = Array.from(fileList || []).filter((f) => f && f.size > 0).slice(0, MAX_BOUNTY_ATTACH_COUNT);
+  const out = [];
+  let total = 0;
+  for (const f of arr) {
+    if (f.size > MAX_BOUNTY_ATTACH_BYTES) {
+      throw new Error(
+        `“${f.name}” is too large (max ${Math.round(MAX_BOUNTY_ATTACH_BYTES / 1024)} KB per file). Use an external link for big assets.`,
+      );
+    }
+    total += f.size;
+    if (total > MAX_BOUNTY_ATTACH_TOTAL) {
+      throw new Error(`Attachments exceed ${Math.round(MAX_BOUNTY_ATTACH_TOTAL / 1024)} KB total. Link to a drive/repo instead.`);
+    }
+    const text = await f.text();
+    out.push({
+      name: f.name,
+      mime: f.type || "text/plain",
+      content: text,
+    });
+  }
+  return out;
+}
+
+// 1. post_bounty — real on-chain call via connected signer
+async function postBounty(e) {
+  e.preventDefault();
+  try {
+    const client = requireAlgoClient();
+    if (!state.currentUser) throw new Error("Sign in with a wallet first.");
+    if (state.currentUser.role !== "creator") throw new Error("Only creator wallets can post a bounty.");
+    if (
+      !state.currentSigner?.address ||
+      !isValidAlgorandAddress(state.currentSigner.address) ||
+      state.currentSigner.address !== state.currentUser.address
+    ) {
+      state.currentUser = await tryBindLocalnetSignerForUser(state.currentUser);
+    }
+    if (state.currentSigner?.address && state.currentUser?.address !== state.currentSigner.address) {
+      state.currentUser = upsertWalletUser({
+        address: state.currentSigner.address,
+        role: state.currentUser?.role || "creator",
+        name: state.currentUser?.name || "LocalNet User",
+        password: state.currentUser?.password || "demo",
+      });
+      saveDB();
+    }
+    if (
+      !state.currentSigner?.address ||
+      !isValidAlgorandAddress(state.currentSigner.address) ||
+      state.currentSigner.address !== state.currentUser.address
+    ) {
+      throw new Error("Connect the creator wallet from Sign In / Connect before posting.");
+    }
+    const reward = parseFloat(e.target.reward.value);
+    const rewardMicroAlgos = Math.round(reward * 1_000_000);
+    if (!Number.isFinite(reward) || reward <= 0) {
+      throw new Error("Reward must be a positive ALGO amount.");
+    }
+    if (!Number.isFinite(rewardMicroAlgos) || rewardMicroAlgos <= 0) {
+      throw new Error("Reward is too small after conversion to microAlgos.");
+    }
+    const days = parseInt(e.target.days.value, 10);
+    if (!Number.isFinite(days) || days <= 0) {
+      throw new Error("Deadline must be at least 1 day.");
+    }
+    const deadlineMs = Date.now() + days * 86400000;
+    const desc = e.target.desc.value;
+    const testCases = ((e.target.testCases && e.target.testCases.value) || "").trim();
+    const specReferenceUrl = (e.target.specReferenceUrl && e.target.specReferenceUrl.value.trim()) || "";
+    const attachedSpecs = await readBountyAttachmentFiles(e.target.bountyAttachments && e.target.bountyAttachments.files);
+    const attachmentFingerprint = attachedSpecs.map((a) => `${a.name}\0${a.content}`).join("\0\0");
+    const criteriaHash = await hashText(
+      [desc, specReferenceUrl || "", attachmentFingerprint || ""].join("\n---BOUNTY_CRITERIA---\n"),
+    );
+    const testSuiteHash = await hashText(testCases || "");
+
+    state.networkMode = "localnet";
+    const localId = `local-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+
+    const bounty = {
+      id: localId,
+      onChain: false,
+      txId: null,
+      createdAt: Date.now(),
+      title: e.target.title.value,
+      desc,
+      specReferenceUrl: specReferenceUrl || null,
+      attachedSpecs: attachedSpecs.length ? attachedSpecs : null,
+      reward,
+      deadline: deadlineMs,
+      creator: state.currentUser.address,
+      status: STATUS_OPEN,
+      tag: e.target.tag.value,
+      minTier: e.target.minTier.value,
+      contributor: null,
+      criteriaHash,
+      testSuiteHash,
+      disputeMode: "auto_generated_rules",
+      workIpfsHash: null,
+      acceptedAt: null,
+      submittedAt: null,
+      rejectedAt: null,
+      disputedAt: null,
+      resolvedAt: null,
+      deliverableEncrypted: null,
+    };
+
+    if (testCases && testCases.trim()) {
+      localStorage.setItem(BE_TESTS_PREFIX + bounty.id, testCases);
+    }
+
+    upsertBountyRecord(bounty);
+    saveDB();
+    state.activeTab = "browse";
+    render();
+    alert("Bounty posted.");
+  } catch (error) {
+    console.error(error);
+    alert(`Post bounty failed: ${String(error?.message || error)}`);
+  }
+}
+
+// 2. accept_bounty — contributor accepts
+async function actAccept(id) {
+  const b = db.bounties.find(x => x.id === id);
+  if (!b || b.status !== STATUS_OPEN) return;
+  const score = await refreshCreditScore(state.currentUser.address);
+  if (score < getTierThreshold(b.minTier)) {
+    alert(`Access Denied! Your score (${score}) is below ${b.minTier} tier (${getTierThreshold(b.minTier)}).`);
+    return;
+  }
+  b.status = STATUS_ACCEPTED;
+  b.contributor = state.currentUser.address;
+  b.acceptedAt = Date.now();
+  upsertBountyRecord(b);
+  saveDB();
+  render();
+}
+
+// 2b. withdraw_acceptance — contributor backs out before submitting (matches on-chain)
+async function actWithdrawAccept(id) {
+  const b = db.bounties.find((x) => x.id === id);
+  if (!b || b.status !== STATUS_ACCEPTED) return;
+  if (state.currentUser.address !== b.contributor) return;
+  if (Date.now() >= b.deadline) {
+    alert("Deadline has passed — use chain rules or contact the creator.");
+    return;
+  }
+  if (!confirm("Withdraw from this bounty? You’ll take a small score penalty; the task reopens for others (escrow stays with the bounty).")) return;
+  const who = b.contributor;
+  applyScoreDelta(who, SCORE_WITHDRAW_ACCEPT);
+  b.status = STATUS_OPEN;
+  b.contributor = null;
+  b.acceptedAt = null;
+  b.submittedAt = null;
+  b.rejectedAt = null;
+  b.disputedAt = null;
+  b.resolvedAt = null;
+  upsertBountyRecord(b);
+  saveDB();
+  await refreshCreditScore(who);
+  render();
+}
+
+// 3. submit_work — contributor submits IPFS hash
+function openSubmitModal(id) { state.submitModalOpen = true; state.submitBountyId = id; render(); }
+function closeSubmitModal() { state.submitModalOpen = false; state.submitBountyId = null; render(); }
+
+async function handleSubmitWork(e) {
+  e.preventDefault();
+  const id = state.submitBountyId;
+  const body = (e.target.submissionBody && e.target.submissionBody.value) || (e.target.ipfsHash && e.target.ipfsHash.value) || "";
+  const githubToken = String(e.target.githubToken?.value || "").trim();
+  if (githubToken) {
+    localStorage.setItem("be_github_token", githubToken);
+  }
+  const plaintext = body.trim();
+  const b = db.bounties.find((x) => x.id === id);
+  if (!b || b.status !== STATUS_ACCEPTED) return;
+  if (!state.currentUser || state.currentUser.address !== b.contributor) return;
+  if (!plaintext || plaintext.length < 10) {
+    alert("Submission must be at least 10 characters (URL, CID, or pasted source).");
+    return;
+  }
+
+  try {
+    let githubContentFrozenHash = null;
+    if (isGithubSourceDeliverableUrl(plaintext)) {
+      if (githubUrlLooksMutableRef(plaintext)) {
+        const pin = confirm(
+          "This GitHub link uses a branch name (e.g. main), so the file can change later.\n\n" +
+            "Prefer a raw URL with a commit SHA:\n" +
+            "https://raw.githubusercontent.com/owner/repo/<40-char-commit>/path/file.ext\n\n" +
+            "OK = still submit (we will snapshot current content). Cancel = edit the URL.",
+        );
+        if (!pin) return;
+      }
+      try {
+        const snap = await tryFreezeGithubContent(plaintext);
+        githubContentFrozenHash = snap.contentHash;
+      } catch (err) {
+        const msg = String(err?.message || err);
+        if (
+          !confirm(
+            "Could not snapshot GitHub file for tamper detection:\n" +
+              msg +
+              "\n\nSubmit anyway? (Oracle will not detect if the file changes later.)",
+          )
+        ) {
+          return;
+        }
+      }
+    }
+
+    const submissionHash = await hashText(plaintext);
+    b.submissionContentHash = submissionHash;
+    b.githubContentFrozenHash = githubContentFrozenHash || null;
+    b.workIpfsHash = plaintext;
+    b.status = STATUS_SUBMITTED;
+    b.submittedAt = Date.now();
+    b.resolvedAt = null;
+    upsertBountyRecord(b);
+    saveDB();
+    startAutoReleaseTimer(id);
+    state.submitModalOpen = false;
+    state.submitBountyId = null;
+    render();
+  } catch (err) {
+    console.error(err);
+    alert(`Submission failed: ${err?.message || err}`);
+  }
+}
+
+// 4. approve_work — creator approves → COMPLETED, +50 score
+async function actApprove(id) {
+  const b = db.bounties.find(x => x.id === id);
+  if (!b || b.status !== STATUS_SUBMITTED) return;
+  if (state.currentUser.address !== b.creator) return;
+  b.status = STATUS_APPROVED;
+  b.resolvedAt = Date.now();
+  applyScoreDelta(b.contributor, SCORE_APPROVED);
+  upsertBountyRecord(b);
+  saveDB();
+  clearAutoRelease(id);
+  await refreshCreditScore(b.contributor);
+  render();
+}
+
+// 5. reject_work — creator rejects → REJECTED
+async function actReject(id) {
+  const b = db.bounties.find(x => x.id === id);
+  if (!b || b.status !== STATUS_SUBMITTED) return;
+  if (state.currentUser.address !== b.creator) return;
+  b.status = STATUS_REJECTED;
+  b.rejectedAt = Date.now();
+  b.resolvedAt = null;
+  upsertBountyRecord(b);
+  saveDB();
+  clearAutoRelease(id);
+  render();
+}
+
+// 5b. reopen_after_rejection — creator re-lists for a new contributor (matches on-chain rules)
+async function actReopen(id) {
+  const b = db.bounties.find((x) => x.id === id);
+  if (!b || b.status !== STATUS_REJECTED) return;
+  if (state.currentUser.address !== b.creator) return;
+  if (!b.rejectedAt || Date.now() < b.rejectedAt + DISPUTE_WINDOW_MS) {
+    alert("Wait until the dispute window ends before reopening (on-chain: same as AUTO_RELEASE_DELAY).");
+    return;
+  }
+  if (Date.now() >= b.deadline) {
+    alert("Bounty deadline has passed; cannot reopen.");
+    return;
+  }
+  b.status = STATUS_OPEN;
+  b.contributor = null;
+  b.workIpfsHash = null;
+  b.submissionContentHash = null;
+  b.githubContentFrozenHash = null;
+  b.submittedAt = null;
+  b.rejectedAt = null;
+  b.disputedAt = null;
+  b.resolvedAt = null;
+  upsertBountyRecord(b);
+  saveDB();
+  render();
+}
+
+// 6. raise_dispute — contributor disputes → DISPUTED
+async function actDispute(id) {
+  const b = db.bounties.find(x => x.id === id);
+  if (!b || b.status !== STATUS_REJECTED) return;
+  if (state.currentUser.address !== b.contributor) return;
+  if (Date.now() > b.rejectedAt + DISPUTE_WINDOW_MS) { alert("Dispute window expired (5 min demo)."); return; }
+  b.status = STATUS_DISPUTED;
+  b.disputedAt = Date.now();
+  upsertBountyRecord(b);
+  saveDB();
+  render();
+  setTimeout(() => simulateOracle(id), 3000);
+}
+
+// 7. opt_out — contributor walks away, -10 score
+async function actOptOut(id) {
+  const b = db.bounties.find(x => x.id === id);
+  if (!b || b.status !== STATUS_REJECTED) return;
+  if (state.currentUser.address !== b.contributor) return;
+  if (Date.now() > b.rejectedAt + DISPUTE_WINDOW_MS) { alert("Opt-out window expired."); return; }
+  b.status = STATUS_OPTED_OUT;
+  b.resolvedAt = Date.now();
+  applyScoreDelta(b.contributor, SCORE_OPT_OUT);
+  upsertBountyRecord(b);
+  saveDB();
+  await refreshCreditScore(b.contributor);
+  render();
+}
+
+// 8. auto_release_after_silence — 5-min timer, +20 score
+function startAutoReleaseTimer(id) {
+  clearAutoRelease(id);
+  autoReleaseTimers[id] = setTimeout(async () => {
+    const b = db.bounties.find(x => x.id === id);
+    if (!b || b.status !== STATUS_SUBMITTED) return;
+    b.status = STATUS_APPROVED;
+    b.resolvedAt = Date.now();
+    applyScoreDelta(b.contributor, SCORE_AUTO);
+    upsertBountyRecord(b);
+    saveDB();
+    await refreshCreditScore(b.contributor);
+    render();
+    alert(`Auto-Release: Creator was silent for 5 min. Bounty completed (demo).`);
+  }, AUTO_RELEASE_SILENCE_MS);
+}
+function clearAutoRelease(id) { if(autoReleaseTimers[id]) { clearTimeout(autoReleaseTimers[id]); delete autoReleaseTimers[id]; } }
+
+// 9. creator_cancel_bounty — refund escrow before any submission (OPEN or ACCEPTED)
+async function actCreatorCancel(id) {
+  const b = db.bounties.find((x) => x.id === id);
+  if (!b || (b.status !== STATUS_OPEN && b.status !== STATUS_ACCEPTED)) return;
+  if (state.currentUser.address !== b.creator) return;
+
+  let penaltyNote = "No assignee — no contributor penalty.";
+  if (b.status === STATUS_ACCEPTED && b.contributor) {
+    if (Date.now() < b.deadline) {
+      penaltyNote = `Assignee receives score penalty (${SCORE_CREATOR_CANCEL_ACTIVE}) for a mid-flight cancel.`;
+    } else {
+      penaltyNote = `Deadline passed without submission — assignee penalty (${SCORE_FAILED_TO_SUBMIT}).`;
+    }
+  }
+
+  if (
+    !confirm(
+      "Cancel this bounty and release the escrow back to you (demo: bookkeeping only)?\n\n" +
+        penaltyNote +
+        "\n\nAfter work is submitted you must use Approve / Reject instead.",
+    )
+  ) {
+    return;
+  }
+
+  if (b.status === STATUS_ACCEPTED && b.contributor) {
+    const delta = Date.now() < b.deadline ? SCORE_CREATOR_CANCEL_ACTIVE : SCORE_FAILED_TO_SUBMIT;
+    applyScoreDelta(b.contributor, delta);
+    await refreshCreditScore(b.contributor);
+  }
+
+  b.status = STATUS_CANCELLED;
+  b.resolvedAt = Date.now();
+  b.contributor = null;
+  clearAutoRelease(id);
+  upsertBountyRecord(b);
+  saveDB();
+  render();
+}
+
+// 10. oracle_verdict — GitHub CI based verification
+
+async function fetchWithTimeout(url, init = {}, timeoutMs = 20000) {
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+function parseGithubReference(urlText) {
+  const value = String(urlText || "").trim();
+  try {
+    const u = new URL(value);
+    const host = u.hostname.toLowerCase();
+    if (host !== "github.com" && host !== "www.github.com") return null;
+    const parts = u.pathname.split("/").filter(Boolean);
+    if (parts.length < 2) return null;
+    const owner = parts[0];
+    const repo = parts[1].replace(/\.git$/i, "");
+    const prIndex = parts.findIndex((p) => p === "pull");
+    const prNumber = prIndex >= 0 ? Number(parts[prIndex + 1] || 0) : null;
+    return {
+      owner,
+      repo,
+      prNumber: Number.isFinite(prNumber) && prNumber > 0 ? prNumber : null,
+      url: value,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function githubHeaders() {
+  const token = String(localStorage.getItem("be_github_token") || window.BE_GITHUB_TOKEN || "").trim();
+  return token
+    ? { Accept: "application/vnd.github+json", Authorization: `Bearer ${token}` }
+    : { Accept: "application/vnd.github+json" };
+}
+
+function hasGithubToken() {
+  return Boolean(String(localStorage.getItem("be_github_token") || window.BE_GITHUB_TOKEN || "").trim());
+}
+
+async function fetchGitHubJson(url) {
+  const res = await fetchWithTimeout(url, { headers: githubHeaders() }, 20000);
+  if (!res.ok) {
+    let body = "";
+    try { body = await res.text(); } catch {}
+    const err = new Error(`GitHub API ${res.status} for ${url}${body ? `: ${body.substring(0, 180)}` : ""}`);
+    err.status = res.status;
+    err.responseBody = body;
+    throw err;
+  }
+  return await res.json();
+}
+
+async function fetchWorkflowYaml(owner, repo) {
+  const decodeContent = (content, pathHint) => {
+    const encoded = String(content?.content || "").replace(/\n/g, "");
+    if (!encoded) throw new Error(`Missing content for workflow file: ${pathHint}`);
+    try {
+      return atob(encoded);
+    } catch {
+      throw new Error(`Unable to decode workflow YAML from GitHub for ${pathHint}.`);
+    }
+  };
+
+  const candidates = [
+    ".github/workflows/code_check.yml",
+    ".github/workflows/code-check.yml",
+    ".github/workflows/ci.yml",
+    ".github/workflows/ci.yaml",
+  ];
+  let saw404 = false;
+  for (const path of candidates) {
+    try {
+      const content = await fetchGitHubJson(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`);
+      return decodeContent(content, path);
+    } catch (err) {
+      if (err?.status === 404) {
+        saw404 = true;
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  try {
+    const workflows = await fetchGitHubJson(`https://api.github.com/repos/${owner}/${repo}/actions/workflows?per_page=100`);
+    const items = Array.isArray(workflows?.workflows) ? workflows.workflows : [];
+    const chosen =
+      items.find((wf) => {
+        const name = String(wf?.name || "").toLowerCase();
+        const path = String(wf?.path || "").toLowerCase();
+        return (
+          name.includes("code quality check") ||
+          path.includes("code_check") ||
+          path.includes("code-check") ||
+          path.includes("/ci.")
+        );
+      }) || items[0];
+
+    if (!chosen?.path) throw new Error("No workflow files discovered by GitHub Actions API.");
+    const normalized = String(chosen.path || "").replace(/^\/+/, "");
+    const content = await fetchGitHubJson(`https://api.github.com/repos/${owner}/${repo}/contents/${normalized}`);
+    return decodeContent(content, normalized);
+  } catch (err) {
+    if (err?.status === 404 && (saw404 || !hasGithubToken())) {
+      throw new Error(
+        `Workflow file not accessible for ${owner}/${repo}. ` +
+        `If the repo is private, provide a GitHub token with repo/actions read access (stored as local key 'be_github_token').`,
+      );
+    }
+    throw err;
+  }
+}
+
+function workflowHasRequiredChecks(yamlText) {
+  const yaml = String(yamlText || "").toLowerCase();
+  const requiredSnippets = [
+    "flake8",
+    "pylint",
+    "mypy",
+    "security_reality_check.py",
+    "generate_ai_tests.py",
+    "github-script",
+    "createcomment",
+  ];
+  const missing = requiredSnippets.filter((snippet) => !yaml.includes(snippet));
+  return { ok: missing.length === 0, missing };
+}
+
+async function fetchLatestCodeCheckRun(owner, repo) {
+  try {
+    for (const wfFile of ["code_check.yml", "code-check.yml"]) {
+      try {
+        const byWorkflow = await fetchGitHubJson(
+          `https://api.github.com/repos/${owner}/${repo}/actions/workflows/${wfFile}/runs?per_page=10`,
+        );
+        const runs = Array.isArray(byWorkflow?.workflow_runs) ? byWorkflow.workflow_runs : [];
+        if (runs.length) return runs[0];
+      } catch {}
+    }
+  } catch {}
+
+  const all = await fetchGitHubJson(`https://api.github.com/repos/${owner}/${repo}/actions/runs?per_page=20`);
+  const runs = (Array.isArray(all?.workflow_runs) ? all.workflow_runs : []).filter((run) => {
+    const name = String(run?.name || "").toLowerCase();
+    const path = String(run?.path || "").toLowerCase();
+    return name.includes("code quality check") || path.includes("code_check.yml");
+  });
+  if (!runs.length) return null;
+  return runs[0];
+}
+
+async function fetchPrHasBotVerdictComment(owner, repo, prNumber) {
+  if (!prNumber) return false;
+  const comments = await fetchGitHubJson(
+    `https://api.github.com/repos/${owner}/${repo}/issues/${prNumber}/comments?per_page=100`,
+  );
+  const arr = Array.isArray(comments) ? comments : [];
+  return arr.some((comment) => String(comment?.body || "").toLowerCase().includes("ci bot verdict"));
+}
+
+async function simulateOracle(id) {
+  const b = db.bounties.find((x) => x.id === id);
+  if (!b || b.status !== STATUS_DISPUTED) return;
+
+  const work = getOraclePlaintext(b).trim();
+  if (!work) {
+    await finalizeOracle(
+      b,
+      false,
+      "Oracle FAIL - Confidential mode: submission plaintext exists only in the contributor's browser session. Raise the dispute from the same session right after submitting so the oracle can verify it.",
+    );
+    return;
+  }
+
+  const gh = parseGithubReference(work);
+  if (!gh) {
+    await finalizeOracle(
+      b,
+      false,
+      "Oracle FAIL - Submit a GitHub repository URL (or PR URL) so CI pipeline verdict can be verified.",
+    );
+    return;
+  }
+
+  try {
+    const yaml = await fetchWorkflowYaml(gh.owner, gh.repo);
+    const checkCoverage = workflowHasRequiredChecks(yaml);
+    if (!checkCoverage.ok) {
+      await finalizeOracle(
+        b,
+        false,
+        `Oracle FAIL - GitHub workflow is missing required CI checks: ${checkCoverage.missing.join(", ")}`,
+      );
+      return;
+    }
+
+    const latestRun = await fetchLatestCodeCheckRun(gh.owner, gh.repo);
+    if (!latestRun) {
+      await finalizeOracle(
+        b,
+        false,
+        "Oracle FAIL - No Code Quality Check workflow run found on GitHub.",
+      );
+      return;
+    }
+
+    if (String(latestRun.status || "").toLowerCase() !== "completed") {
+      await finalizeOracle(
+        b,
+        false,
+        "Oracle FAIL - Latest Code Quality Check run is still in progress. Wait for completion.",
+      );
+      return;
+    }
+
+    const runPass = String(latestRun.conclusion || "").toLowerCase() === "success";
+    let hasBotComment = false;
+    try {
+      hasBotComment = await fetchPrHasBotVerdictComment(gh.owner, gh.repo, gh.prNumber);
+    } catch {
+      hasBotComment = false;
+    }
+
+    const devWins = runPass && (!gh.prNumber || hasBotComment);
+    const runName = latestRun.name || "Code Quality Check";
+    const runId = latestRun.id || "unknown";
+    const runConclusion = latestRun.conclusion || "unknown";
+    const msg = devWins
+      ? `Oracle PASS - ${runName} succeeded on GitHub CI (run ${runId}), required checks configured, and bot verdict comment present.`
+      : `Oracle FAIL - GitHub CI verdict not acceptable. Run conclusion: ${runConclusion}.` +
+        (gh.prNumber && !hasBotComment ? " Missing CI bot verdict PR comment." : "");
+
+    b.oracleLog =
+      `repo=${gh.owner}/${gh.repo}\n` +
+      `run_id=${runId}\n` +
+      `run_status=${latestRun.status}\n` +
+      `run_conclusion=${runConclusion}\n` +
+      `required_checks_ok=${checkCoverage.ok}\n` +
+      `bot_comment_found=${hasBotComment}`;
+    await finalizeOracle(b, devWins, msg);
+  } catch (err) {
+    await finalizeOracle(b, false, "Oracle FAIL - Exception during execution: " + err.message);
+  }
+}
+
+async function finalizeOracle(b, devWins, alertMsg) {
+  if (devWins) {
+    b.status = STATUS_RESOLVED_WORKER;
+    applyScoreDelta(b.contributor, SCORE_DISPUTE_WIN);
+  } else {
+    b.status = STATUS_RESOLVED_CREATOR;
+    applyScoreDelta(b.contributor, SCORE_DISPUTE_LOSS);
+  }
+  b.resolvedAt = Date.now();
+  upsertBountyRecord(b);
+  saveDB();
+  await refreshCreditScore(b.contributor);
+  render();
+  alert(alertMsg);
+}
+
+/* Helper for remaining time display */
+function timeRemaining(targetMs) {
+  const diff = targetMs - Date.now();
+  if (diff <= 0) return "Expired";
+  const s = Math.floor(diff/1000);
+  const m = Math.floor(s/60);
+  return m > 0 ? `${m}m ${s%60}s` : `${s}s`;
+}
+
+/* ══════════════════════════════════════════════════════════
+   RENDER ENGINE
+   ══════════════════════════════════════════════════════════ */
+function render() {
+  const root = document.getElementById("app");
+  const theme = document.documentElement.getAttribute('data-theme');
+  const u = state.currentUser;
+
+  root.innerHTML = `
+    <!-- HEADER -->
+    <div class="container">
+      <header>
+          <div>
+          <div class="brand"><span class="brand-mark">${svgAlgo}</span> bounty escrow</div>
+            <div style="margin-top:8px; font-size:11px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.12em;">Main UI · ${formatSignerLabel()}</div>
+          </div>
+          <div class="flex-between header-actions" style="gap:16px;">
+          <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+                ${theme === "dark" ? themeIconSun : themeIconMoon}
+            </button>
+          
+          ${u ? `
+            <div class="user-badge" onclick="switchTab('profile')" style="cursor:pointer">
+              <div class="avatar">${escapeHtml(userLabel(u).charAt(0).toUpperCase())}</div>
+              <div class="user-info">
+                <span class="user-name">${escapeHtml(userLabel(u))}</span>
+                <span class="user-meta">${u.role} · ${getUserScore(u)} CS · ${getTier(getUserScore(u))}</span>
+              </div>
+            </div>
+            <button class="btn btn-secondary" style="padding: 8px 16px;" onclick="logout()">Exit</button>
+          ` : `
+            <button class="btn btn-primary" onclick="openAuth()">Sign In / Connect</button>
+          `}
+        </div>
+      </header>
+
+      <!-- TABS -->
+      ${u ? `
+        <div class="nav-tabs">
+          <button class="nav-tab ${state.activeTab==='landing'?'active':''}" onclick="switchTab('landing')">Overview</button>
+          <button class="nav-tab ${state.activeTab==='browse'?'active':''}" onclick="switchTab('browse')">Browse Bounties</button>
+          ${u.role === 'creator' ? `<button class="nav-tab ${state.activeTab==='post'?'active':''}" onclick="switchTab('post')">Post Bounty</button>` : ''}
+          <button class="nav-tab ${state.activeTab==='plagiarism'?'active':''}" onclick="switchTab('plagiarism')">Plagiarism Check</button>
+          <button class="nav-tab ${state.activeTab==='myworks'?'active':''}" onclick="switchTab('myworks')">My Dashboard</button>
+          <button class="nav-tab ${state.activeTab==='transactions'?'active':''}" onclick="switchTab('transactions')">Transactions</button>
+          <button class="nav-tab ${state.activeTab==='profile'?'active':''}" onclick="switchTab('profile')">Profile</button>
+        </div>
+      ` : (state.activeTab === 'browse' ? `<div style="margin-bottom:32px; color:var(--text-secondary)">Please sign in to participate in the escrow network.</div>` : '')}
+
+      <!-- VIEWS -->
+      ${state.activeTab === 'landing' ? renderLanding() : ''}
+      ${!u && state.activeTab === 'browse' ? renderBrowse(false) : ''}
+      ${u && state.activeTab === 'browse' ? renderBrowse(true) : ''}
+      ${u && state.activeTab === 'post' ? renderPost() : ''}
+      ${u && state.activeTab === 'plagiarism' ? renderPlagiarismCheck() : ''}
+      ${u && state.activeTab === 'myworks' ? renderDashboard() : ''}
+      ${u && state.activeTab === 'transactions' ? renderTransactions() : ''}
+      ${u && state.activeTab === 'profile' ? renderProfile() : ''}
+      ${u && state.activeTab === 'view' ? renderBountyDetail(state.viewingBounty) : ''}
+
+    </div>
+
+    <!-- AUTH OVERLAY -->
+    <div class="auth-overlay ${state.authModalOpen ? 'active' : ''}" onclick="closeAuth()">
+      <div class="auth-card" onclick="event.stopPropagation()">
+        <div class="auth-header">
+          <h2 style="font-size:24px; margin:0; font-weight:800;">Welcome to Escrow</h2>
+          <button type="button" class="auth-close" aria-label="Close sign in" onclick="closeAuth()">×</button>
+        </div>
+        
+        <div class="auth-tabs">
+          <div class="auth-tab ${state.authMode==='login'?'active':''}" onclick="state.authMode='login'; render()">Login</div>
+          <div class="auth-tab ${state.authMode==='register'?'active':''}" onclick="state.authMode='register'; render()">Register</div>
+        </div>
+
+        ${state.authMode === 'login' ? `
+          <form onsubmit="handleLogin(event)">
+            <div class="form-group">
+              <label>Alias / Username</label>
+              <input type="text" name="alias" class="form-control" placeholder="e.g. Alice" required>
+            </div>
+            <div class="form-group">
+              <label>Password</label>
+              <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Connect Securely</button>
+            
+            <div style="display:flex; align-items:center; margin: 24px 0;">
+              <hr style="flex:1; border:none; border-top:1px solid var(--border);">
+              <span style="padding:0 12px; font-size:12px; color:var(--text-secondary);">OR</span>
+              <hr style="flex:1; border:none; border-top:1px solid var(--border);">
+            </div>
+            
+            <button type="button" class="btn btn-secondary btn-full" style="background:#000; color:#fff; font-weight:700; border:1px solid rgba(255,255,255,0.16);" onclick="handlePeraConnect('login')">
+              <span class="ico" style="width:14px;height:14px;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/></svg></span> Connect Wallet
+            </button>
+          </form>
+        ` : `
+          <form onsubmit="handleRegister(event)">
+            <div class="form-group">
+              <label>Unique Alias</label>
+              <input type="text" name="name" class="form-control" placeholder="e.g. Satoshi" required>
+            </div>
+            <div class="form-group">
+              <label>Secure Password</label>
+              <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+            </div>
+            <div class="form-group">
+              <label>Primary Role</label>
+              <select name="role" class="form-control" id="registerRoleSelect">
+                <option value="contributor">Contributor (Earn Algo)</option>
+                <option value="creator">Creator (Post Bounties)</option>
+                <option value="oracle">Oracle Observer</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">Generate Wallet & Register</button>
+            
+            <div style="display:flex; align-items:center; margin: 24px 0;">
+              <hr style="flex:1; border:none; border-top:1px solid var(--border);">
+              <span style="padding:0 12px; font-size:12px; color:var(--text-secondary);">OR</span>
+              <hr style="flex:1; border:none; border-top:1px solid var(--border);">
+            </div>
+            
+            <button type="button" class="btn btn-secondary btn-full" style="background:#fff; color:#000; font-weight:700; border:1px solid rgba(255,255,255,0.16);" onclick="handlePeraConnect('register')">
+              Connect Wallet
+            </button>
+          </form>
+        `}
+      </div>
+    </div>
+
+    <!-- SUBMIT MODAL -->
+    ${state.submitModalOpen ? `
+    <div class="auth-overlay active">
+      <div class="auth-card" style="max-width: 520px;">
+        <h2 style="font-size:24px; margin-bottom: 16px; font-weight:800;">Submit Deliverable</h2>
+        <p style="color:var(--text-secondary); margin-bottom:16px; font-size:14px; line-height:1.5;">
+          Your entry is stored directly in this local demo so the creator and contributor can both review the exact submitted text during approval or dispute.
+        </p>
+        <p style="color:var(--warning); margin-bottom:16px; font-size:13px; line-height:1.5; padding:10px 12px; border-radius:10px; border:1px solid rgba(245,158,11,0.35); background:rgba(245,158,11,0.08);">
+          <strong>GitHub CI mode:</strong> Submit a public GitHub repository URL (or PR URL). Oracle checks CI workflow configuration and the latest <strong>Code Quality Check</strong> verdict.
+        </p>
+        <form onsubmit="handleSubmitWork(event)">
+          <div class="form-group">
+            <label style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-secondary);">GitHub repository / PR URL</label>
+            <textarea name="submissionBody" class="form-control" style="min-height:120px; resize:vertical;" placeholder="https://github.com/owner/repo  or  https://github.com/owner/repo/pull/123" required minlength="10"></textarea>
+            <p style="font-size:11px; color:var(--text-secondary); margin:8px 0 0;">
+              Oracle will verify: CI pipeline presence, flake8/pylint/mypy/security/AI-test steps, bot comment, and final workflow verdict.
+            </p>
+          </div>
+          <div class="form-group" style="margin-top:12px;">
+            <label style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-secondary);">GitHub Token (optional, needed for private repos)</label>
+            <input name="githubToken" type="password" class="form-control" placeholder="ghp_... (stored locally in this browser only)">
+          </div>
+          <div style="display:flex; gap:12px; margin-top:24px;">
+            <button type="button" class="btn btn-secondary" style="flex:1;" onclick="closeSubmitModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;">Submit deliverable</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    ` : ''}
+  `;
+}
+
+/* ══════════════════════════════════════════════════════════
+   VIEW COMPONENTS
+   ══════════════════════════════════════════════════════════ */
+function renderLanding() {
+  const openBounties = db.bounties.filter((b) => b.status === STATUS_OPEN).slice(0, 3);
+  let html = `
+    <!-- Hero Section -->
+    <div style="margin-bottom: 80px; text-align: left; max-width: 900px; padding: 40px 0;">
+      <h1 class="landing-hero-title">
+        Bounty Escrow Agent: <br/>
+        <span style="color: var(--text-secondary);">Trustless Task Completion</span>
+      </h1>
+      <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 40px;">
+        <button class="btn btn-primary" style="padding: 18px 32px; font-size: 16px; border-radius: 999px;" onclick="openAuth()">
+          Connect Wallet
+        </button>
+        <button class="btn btn-secondary" style="padding: 18px 32px; font-size: 16px; border-radius: 999px;" onclick="switchTab('browse')">
+          Browse Bounties
+        </button>
+      </div>
+    </div>
+
+    <!-- How It Works Section -->
+    <div style="margin-bottom: 80px;">
+      <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase;">Protocol_Flow</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 40px; font-size: 16px;">Architected for deterministic security. No intermediaries. Just math and verifiable execution.</p>
+      
+      <div class="landing-steps">
+        <div class="landing-step">
+          <div class="step-num bg-primary">01</div>
+          <div class="glass-panel step-card">
+            <div>
+              <h3 class="step-title">Deposit</h3>
+              <p class="step-desc">Bounty funds are locked into a specialized escrow contract. Zero risk of non-payment upon completion.</p>
+            </div>
+            <div style="opacity: 0.45; color: var(--text-primary);"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          </div>
+        </div>
+        <div class="landing-step">
+          <div class="step-num">02</div>
+          <div class="glass-panel step-card">
+            <div>
+              <h3 class="step-title">Execute</h3>
+              <p class="step-desc">The agent performs the technical task. Progress is tracked via verifiable git commits or API endpoints.</p>
+            </div>
+            <div style="opacity: 0.45; color: var(--text-primary);"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+          </div>
+        </div>
+        <div class="landing-step">
+          <div class="step-num">03</div>
+          <div class="glass-panel step-card">
+            <div>
+              <h3 class="step-title">Verify</h3>
+              <p class="step-desc">Automated test suites or peer validators confirm the output meets the cryptographically signed requirements.</p>
+            </div>
+            <div style="opacity: 0.45; color: var(--text-primary);"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+          </div>
+        </div>
+        <div class="landing-step">
+          <div class="step-num">04</div>
+          <div class="glass-panel step-card">
+            <div>
+              <h3 class="step-title">Release</h3>
+              <p class="step-desc">The contract automatically triggers the release of funds to the agent's wallet address. Instant settlement.</p>
+            </div>
+            <div style="opacity: 0.45; color: var(--text-primary);"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Featured Bounties -->
+    <div style="margin-bottom: 80px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; flex-wrap: wrap; gap: 16px;">
+        <div>
+          <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 700; text-transform: uppercase;">Live_Feed</h2>
+          <p style="color: var(--text-secondary); margin-top: 8px;">Real-time open tasks waiting for execution.</p>
+        </div>
+        <button class="btn btn-secondary" style="border-radius: 999px; font-size: 11px;" onclick="switchTab('browse')">View All Bounties</button>
+      </div>
+      <div>
+  `;
+
+  if (openBounties.length === 0) {
+    html += `<div style="padding:16px 0; color:var(--text-secondary);">No open bounties at the moment.</div>`;
+  } else {
+    openBounties.forEach(b => {
+      html += `
+        <div class="bounty-card" onclick="state.viewingBounty='${b.id}'; switchTab('view')">
+          <div>
+            <div class="bounty-title" style="font-size: 20px;">${b.title}</div>
+            <div class="bounty-meta">
+              <span class="badge badge-tag">${b.tag}</span>
+              <span>Min Tier: ${b.minTier}</span>
+            </div>
+          </div>
+          <div class="bounty-reward" style="font-size: 28px;">${svgAlgo} ${b.reward.toLocaleString()}</div>
+        </div>
+      `;
+    });
+  }
+
+  html += `
+      </div>
+    </div>
+  `;
+  return html;
+}
+
+function renderBrowse(isLoggedIn) {
+  const openBounties = db.bounties.filter((b) => b.status === STATUS_OPEN);
+  const totalValue = openBounties.reduce((sum, bounty) => sum + Number(bounty.reward || 0), 0);
+  let html = `
+    <div class="glass-panel">
+      <div style="display:grid; grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.8fr); gap:18px; align-items:end;">
+        <div>
+          <div style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:10px;">What matters now</div>
+          <div style="font-family:'Space Grotesk', sans-serif; font-size:clamp(42px, 7vw, 82px); line-height:0.92; letter-spacing:-0.07em; max-width:8ch;">Open work. locked funds.</div>
+          <p style="margin-top:16px; max-width:48ch; color:var(--text-secondary); font-size:13px;">
+            No gradients, no marketplace noise. Just active bounties, access thresholds, and escrow amounts.
+          </p>
+        </div>
+        <div style="display:grid; gap:12px;">
+          <div style="border:1px solid var(--border); border-radius:22px; padding:18px; background:rgba(255,255,255,0.02);">
+            <div style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.12em;">Bounties</div>
+            <div style="font-family:'Space Grotesk', sans-serif; font-size:48px; line-height:1; margin-top:8px;">${openBounties.length}</div>
+          </div>
+          <div style="border:1px solid var(--border); border-radius:22px; padding:18px; background:rgba(255,255,255,0.02);">
+            <div style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.12em;">In escrow</div>
+            <div style="font-family:'Space Grotesk', sans-serif; font-size:32px; line-height:1.1; margin-top:8px; display:flex; align-items:center; gap:6px;"><span class="algo-icon-lg">${svgAlgo.replace('algo-icon', 'algo-icon-lg')}</span>${totalValue.toLocaleString()}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="glass-panel"><div class="panel-header"><h2 class="panel-title">Today</h2><div style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.12em;">${isLoggedIn ? 'signed in' : 'read only'}</div></div>`;
+  
+  if (!openBounties.length) {
+    html += `<div style="padding:16px 0; color:var(--text-secondary);">No bounties posted yet. Sign in and publish the first escrow-backed brief.</div>`;
+  }
+
+  openBounties.forEach(b => {
+    html += `
+      <div class="bounty-card" onclick="${isLoggedIn ? `state.viewingBounty='${b.id}'; switchTab('view')` : `openAuth()`}">
+        <div>
+          <div class="bounty-title">${b.title}</div>
+          <div class="bounty-meta">
+            <span>Posted by ${escapeHtml(userLabel(getUser(b.creator)))}</span>
+            <span class="badge badge-tag">${b.tag}</span>
+            <span>Min Tier: ${b.minTier}</span>
+          </div>
+        </div>
+        <div class="bounty-reward" style="display:flex;align-items:center;gap:6px;">${svgAlgo} ${b.reward.toLocaleString()}</div>
+      </div>
+    `;
+  });
+  html += `</div>`;
+  return html;
+}
+
+function renderPost() {
+  return `
+    <div class="glass-panel" style="max-width: 700px; margin: 0 auto;">
+      <div class="panel-header"><h2 class="panel-title">Post bounty</h2></div>
+      <form onsubmit="postBounty(event)">
+        <div class="form-group">
+          <label>Bounty Title</label>
+          <input type="text" name="title" class="form-control" required placeholder="What needs to be done?">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea name="desc" class="form-control" required placeholder="Describe requirements and deliverables"></textarea>
+        </div>
+        <div class="form-group">
+          <label>External spec / file host (optional)</label>
+          <input type="url" name="specReferenceUrl" class="form-control" placeholder="https://notion.so/…, Google Drive, other bounty, Figma, S3, IPFS gateway…">
+          <p style="font-size:11px; color:var(--text-secondary); margin:8px 0 0;">Use this when materials live outside the app. They are referenced in the criteria hash; contributors follow the link themselves.</p>
+        </div>
+        <div class="form-group">
+          <label>Attach spec files (optional)</label>
+          <input type="file" name="bountyAttachments" class="form-control" multiple accept=".txt,.md,.markdown,.json,.yaml,.yml,.csv,.py,.js,.ts,.tsx,.jsx,.c,.h,.cpp,.go,.rs,.java,.kt,.swift,.rb,.php,.sh,.sql,.env.example,.gitignore,text/*">
+          <p style="font-size:11px; color:var(--text-secondary); margin:8px 0 0;">Text-based files only (read in-browser). Up to ${MAX_BOUNTY_ATTACH_COUNT} files, ${Math.round(MAX_BOUNTY_ATTACH_BYTES / 1024)} KB each, ${Math.round(MAX_BOUNTY_ATTACH_TOTAL / 1024)} KB total. For PDFs, images, or ZIPs, use the external link above or IPFS.</p>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Reward (${svgAlgo} ALGO)</label>
+            <input type="number" name="reward" min="1" class="form-control" required placeholder="1000">
+          </div>
+          <div class="form-group">
+            <label>Deadline (Days)</label>
+            <input type="number" name="days" min="1" value="7" class="form-control" required>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Category Tag</label>
+            <select name="tag" class="form-control">
+              ${OBJECTIVE_BOUNTY_CATEGORIES.map((tag) => `<option value="${tag}">${tag}</option>`).join("")}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Minimum Contributor Tier</label>
+            <select name="minTier" class="form-control">
+              <option>Open</option>
+              <option>Bronze</option>
+              <option>Silver</option>
+              <option>Gold</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full mt-4" style="padding: 18px; font-size:16px;">Post Bounty</button>
+      </form>
+    </div>
+  `;
+}
+
+function renderDashboard() {
+  const u = state.currentUser;
+  const score = getUserScore(u);
+  const tier = getTier(score);
+  const myBounties = db.bounties.filter(b => u.role === 'creator' ? b.creator === u.address : b.contributor === u.address);
+  const allOpen = db.bounties.filter(b => b.status === STATUS_OPEN && b.creator !== u.address);
+  const activeBounties = myBounties.filter(b => b.status === STATUS_ACCEPTED || b.status === STATUS_SUBMITTED || b.status === STATUS_DISPUTED);
+  const totalEscrowed = myBounties.filter(b => b.status === STATUS_OPEN || b.status === STATUS_ACCEPTED || b.status === STATUS_SUBMITTED).reduce((s,b) => s + Number(b.reward||0), 0);
+  const completed = myBounties.filter(b => isSettledStatus(b.status)).length;
+
+  // SVG status icon helper
+  const statusIcon = (st) => {
+    if (st === STATUS_OPEN) return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>`;
+    if (st === STATUS_ACCEPTED) return `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
+    if (st === STATUS_SUBMITTED) return `<svg viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>`;
+    if (st === STATUS_DISPUTED) return `<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`;
+    if (st === STATUS_REJECTED) return `<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+    if (isSettledStatus(st)) return `<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
+    return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>`;
+  };
+
+  let html = `
+    <!-- OPS METRICS BAR -->
+    <div class="ops-grid">
+      <div class="ops-metric">
+        <div class="ops-metric__label">Active Tasks</div>
+        <div class="ops-metric__value">${activeBounties.length}</div>
+        <div class="ops-metric__sub">${myBounties.length} total missions</div>
+      </div>
+      <div class="ops-metric">
+        <div class="ops-metric__label">Escrowed (ALGO)</div>
+        <div class="ops-metric__value" style="font-size:clamp(22px,3vw,36px);">${svgAlgo} ${totalEscrowed.toLocaleString()}</div>
+        <div class="ops-metric__sub">locked volume</div>
+      </div>
+      <div class="ops-metric">
+        <div class="ops-metric__label">Credit Score</div>
+        <div class="ops-metric__value" style="color:${getTierColor(tier)};">${score}</div>
+        <div class="ops-metric__sub">Tier: ${tier}</div>
+      </div>
+      <div class="ops-metric">
+        <div class="ops-metric__label">Completed</div>
+        <div class="ops-metric__value">${completed}</div>
+        <div class="ops-metric__sub">settled bounties</div>
+      </div>
+    </div>
+
+    <!-- OPS DUAL PANELS -->
+    <div class="ops-panels">
+
+      <!-- LEFT: MISSION CONTROL -->
+      <div class="ops-panel">
+        <div class="ops-panel__head">
+          <span class="ops-panel__title">Mission Control</span>
+          <span class="ops-panel__badge">${u.role}</span>
+        </div>
+  `;
+
+  if (myBounties.length === 0) {
+    html += `<div class="ops-empty">No active missions. ${u.role === 'creator' ? '<br/><button class="btn btn-primary" style="margin-top:12px;" onclick="switchTab(\'post\')">Open creator post form</button>' : ''}</div>`;
+  } else {
+    myBounties.forEach(b => {
+      const stColor = STATUS_COLOR[b.status] || 'var(--text-secondary)';
+      html += `
+        <div class="ops-row" onclick="state.viewingBounty='${b.id}'; switchTab('view')">
+          <div class="ops-row__icon" style="color:${stColor};">${statusIcon(b.status)}</div>
+          <div>
+            <div class="ops-row__title">${b.title}</div>
+            <div class="ops-row__meta">${STATUS_LABEL[b.status] || 'Unknown'} · ${new Date(b.deadline).toLocaleDateString()}</div>
+          </div>
+          <div class="ops-row__reward">${svgAlgo} ${Number(b.reward).toLocaleString()}</div>
+        </div>
+      `;
+    });
+  }
+
+  html += `
+      </div>
+
+      <!-- RIGHT: MARKET FEED -->
+      <div class="ops-panel">
+        <div class="ops-panel__head">
+          <span class="ops-panel__title">Market Feed</span>
+          <span class="ops-panel__badge">${allOpen.length} open</span>
+        </div>
+  `;
+
+  if (allOpen.length === 0) {
+    html += `<div class="ops-empty">No open bounties available right now.</div>`;
+  } else {
+    allOpen.slice(0, 12).forEach(b => {
+      html += `
+        <div class="ops-row" onclick="state.viewingBounty='${b.id}'; switchTab('view')">
+          <div class="ops-row__icon" style="color:var(--text-secondary);"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+          <div>
+            <div class="ops-row__title">${b.title}</div>
+            <div class="ops-row__meta">${b.tag} · Min: ${b.minTier}</div>
+          </div>
+          <div class="ops-row__reward">${svgAlgo} ${Number(b.reward).toLocaleString()}</div>
+        </div>
+      `;
+    });
+  }
+
+  html += `
+      </div>
+    </div>
+  `;
+  return html;
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function copyProfileAddress() {
+  const el = document.getElementById("profileWalletAddress");
+  const text = el ? el.textContent.trim() : "";
+  if (!text) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      alert("Wallet address copied to clipboard.");
+    }).catch(() => {
+      prompt("Copy this address:", text);
+    });
+  } else {
+    prompt("Copy this address:", text);
+  }
+}
+
+/* Use 127.0.0.1 (not "localhost") so Windows does not hit ::1 while the API listens on IPv4. */
+const LOCALNET_WALLET_API = "http://127.0.0.1:3457";
+
+/** Normalize JSON from /balance: always microAlgos (algod `amount`). */
+function parseMicroAlgosFromBalanceResponse(data) {
+  if (!data || typeof data !== "object") return null;
+  const pick = (v) => {
+    if (v == null || v === "") return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+  const direct =
+    pick(data.microalgos) ?? pick(data.microAlgos) ?? pick(data.amount);
+  if (direct != null) return direct;
+  const alg = pick(data.algos);
+  if (alg == null) return null;
+  /* If "algos" holds a huge integer, it is almost always microAlgos with the wrong key. */
+  if (Number.isInteger(alg) && alg >= 1_000_000) return Math.round(alg);
+  return Math.round(alg * 1_000_000);
+}
+
+/** Whole ALGO for display (microAlgos / 1e6). */
+function formatAlgosFromMicro(micro) {
+  const m = Number(micro);
+  if (!Number.isFinite(m)) return null;
+  const algos = m / 1_000_000;
+  return algos.toLocaleString(undefined, { maximumFractionDigits: 6, minimumFractionDigits: 0 });
+}
+
+/** Standard Algorand public address (base32), not demo placeholders like ALGO...EX1 */
+function isLikelyAlgorandAddress(addr) {
+  const s = typeof addr === "string" ? addr.trim() : "";
+  return /^[A-Z2-7]{58}$/.test(s);
+}
+
+async function refreshAlgoBalance() {
+  const addr = state.currentUser?.address;
+  if (!addr || !isLikelyAlgorandAddress(addr)) {
+    state.algoBalanceMicro = null;
+    state.algoBalanceLoading = false;
+    state.algoBalanceError = null;
+    render();
+    return;
+  }
+  state.algoBalanceLoading = true;
+  state.algoBalanceError = null;
+  render();
+  try {
+    const res = await fetch(
+      `${LOCALNET_WALLET_API}/balance?address=${encodeURIComponent(addr)}`,
+      { method: "GET" },
+    );
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+    const micro = parseMicroAlgosFromBalanceResponse(data);
+    state.algoBalanceMicro = micro != null ? micro : null;
+    state.algoBalanceError = null;
+  } catch (e) {
+    state.algoBalanceMicro = null;
+    state.algoBalanceError = String(e?.message || e);
+  } finally {
+    state.algoBalanceLoading = false;
+    render();
+  }
+}
+
+async function loadLocalNetAccounts() {
+  if (state.localnetLoading) return;
+  state.localnetLoading = true;
+  render();
+  try {
+    const res = await fetch(`${LOCALNET_WALLET_API}/accounts`, { method: "GET" });
+    if (!res.ok) throw new Error(`Wallet API HTTP ${res.status}`);
+    const data = await res.json();
+    state.localnetAccounts = (data.accounts || []).map((a) => a.address).filter(Boolean);
+  } catch (e) {
+    alert(
+      "Cannot reach LocalNet Wallet API.\n\n" +
+      "Fix:\n" +
+      "1) LocalNet: algokit localnet start\n" +
+      "2) Run: python oracle/localnet_wallet_api.py\n" +
+      "3) In the browser open: http://127.0.0.1:3457/health\n" +
+      "   (use 127.0.0.1 — on Windows, “localhost” can use IPv6 and miss this server.)\n\n" +
+      "Details: " + (e?.message || e)
+    );
+  } finally {
+    state.localnetLoading = false;
+    render();
+  }
+}
+
+function setCurrentUserAddress(addr) {
+  if (!state.currentUser) return;
+  if (!addr) return;
+  const prev = state.currentUser;
+  const existing = db.users[addr];
+  if (!existing) {
+    const pn = (prev.name || "").trim();
+    const cleanPrevName = pn.includes("…") || pn.includes("...") ? "" : pn;
+    db.users[addr] = { ...prev, address: addr, name: cleanPrevName && cleanPrevName !== addr ? cleanPrevName : "" };
+  } else {
+    let nm = (existing.name || "").trim();
+    if (nm.includes("…") || nm.includes("...")) nm = "";
+    db.users[addr] = { ...existing, name: nm, role: existing.role || prev.role, address: addr };
+  }
+  saveDB();
+  state.currentUser = db.users[addr];
+  state.algoBalanceMicro = null;
+  state.algoBalanceError = null;
+  render();
+  refreshAlgoBalance();
+}
+
+async function fundLocalNet(address, microalgos) {
+  if (!address) return;
+  try {
+    const res = await fetch(`${LOCALNET_WALLET_API}/fund`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ address, microalgos }),
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+    if (String(data.receiver || "") === String(state.currentUser?.address || "")) {
+      state.algoBalanceMicro =
+        data.receiver_balance != null ? Number(data.receiver_balance) : state.algoBalanceMicro;
+      state.algoBalanceError = null;
+      render();
+    }
+    const rb = data.receiver_balance != null ? Number(data.receiver_balance) : NaN;
+    const balAlgo = Number.isFinite(rb) ? formatAlgosFromMicro(rb) : null;
+    alert(
+      `Funded!\nTxID: ${data.txid}\nNew balance: ` +
+        (balAlgo != null ? `${balAlgo} ALGO` : String(data.receiver_balance)),
+    );
+  } catch (e) {
+    alert(
+      "Funding failed.\n\n" +
+      "Make sure:\n" +
+      "- LocalNet is running\n" +
+      "- python oracle/localnet_wallet_api.py is running\n" +
+      "- Check http://127.0.0.1:3457/health (algod_reachable / kmd_reachable)\n\n" +
+      "Details: " + (e?.message || e)
+    );
+  }
+}
+
+function formatEventDate(ts) {
+  if (!ts || !Number.isFinite(Number(ts))) return "—";
+  return new Date(Number(ts)).toLocaleString([], {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function getActiveUserBounties(user) {
+  if (!user) return [];
+  return db.bounties.filter((b) => {
+    const isParticipant = b.creator === user.address || b.contributor === user.address;
+    return isParticipant && !isSettledStatus(b.status) && !isCancelledStatus(b.status);
+  });
+}
+
+function getTransactionAmountLabel(entry) {
+  const sign = entry.direction === "in" ? "+" : entry.direction === "out" ? "-" : "·";
+  return `${sign} ${svgAlgo} ${Number(entry.amount || 0).toLocaleString()}`;
+}
+
+function buildTransactionHistory(user) {
+  if (!user) return [];
+  const entries = [];
+  const participantBounties = db.bounties.filter(
+    (b) => b.creator === user.address || b.contributor === user.address,
+  );
+
+  for (const bounty of participantBounties) {
+    const reward = Number(bounty.reward || 0);
+    const isCreator = bounty.creator === user.address;
+    const isContributor = bounty.contributor === user.address;
+    const bountyLabel = bounty.title || `Bounty ${String(bounty.id).slice(0, 8)}`;
+    const txRef = bounty.txId ? ` · ${String(bounty.txId).slice(0, 10)}…` : "";
+
+    if (isCreator && bounty.createdAt) {
+      entries.push({
+        id: `${bounty.id}-posted`,
+        title: bountyLabel,
+        event: "Escrow funded",
+        amount: reward,
+        direction: "out",
+        status: "Sent to escrow",
+        date: bounty.createdAt,
+        note: `Posted by you${txRef}`,
+      });
+    }
+
+    if (isContributor && bounty.acceptedAt) {
+      entries.push({
+        id: `${bounty.id}-accepted`,
+        title: bountyLabel,
+        event: "Bounty accepted",
+        amount: reward,
+        direction: "neutral",
+        status: "Work in progress",
+        date: bounty.acceptedAt,
+        note: "You accepted this bounty",
+      });
+    }
+
+    if (isContributor && bounty.submittedAt) {
+      entries.push({
+        id: `${bounty.id}-submitted`,
+        title: bountyLabel,
+        event: "Work submitted",
+        amount: reward,
+        direction: "neutral",
+        status: "Awaiting review",
+        date: bounty.submittedAt,
+        note: "Submission delivered to escrow review",
+      });
+    }
+
+    if (bounty.rejectedAt && (isCreator || isContributor)) {
+      entries.push({
+        id: `${bounty.id}-rejected`,
+        title: bountyLabel,
+        event: "Submission rejected",
+        amount: reward,
+        direction: "neutral",
+        status: STATUS_LABEL[bounty.status] || "Rejected",
+        date: bounty.rejectedAt,
+        note: "Dispute window opened",
+      });
+    }
+
+    if (bounty.disputedAt && (isCreator || isContributor)) {
+      entries.push({
+        id: `${bounty.id}-disputed`,
+        title: bountyLabel,
+        event: "Dispute raised",
+        amount: reward,
+        direction: "neutral",
+        status: "In dispute",
+        date: bounty.disputedAt,
+        note: "Automated rules evaluation",
+      });
+    }
+
+    if (bounty.resolvedAt) {
+      let include = false;
+      let event = "Lifecycle update";
+      let direction = "neutral";
+      let status = STATUS_LABEL[bounty.status] || "Updated";
+      let note = "";
+
+      if (bounty.status === STATUS_APPROVED || bounty.status === STATUS_RESOLVED_WORKER) {
+        include = isCreator || isContributor;
+        event = isContributor ? "Payout received" : "Escrow released";
+        direction = isContributor ? "in" : "out";
+        note = bounty.status === STATUS_APPROVED ? "Approved by creator" : "Dispute resolved for contributor";
+      } else if (bounty.status === STATUS_RESOLVED_CREATOR || bounty.status === STATUS_CANCELLED) {
+        include = isCreator || isContributor;
+        event = isCreator ? "Refund received" : "Escrow closed";
+        direction = isCreator ? "in" : "neutral";
+        note = bounty.status === STATUS_CANCELLED ? "Bounty cancelled" : "Dispute resolved for creator";
+      } else if (bounty.status === STATUS_OPTED_OUT) {
+        include = isCreator || isContributor;
+        event = isCreator ? "Refund received" : "Opted out";
+        direction = isCreator ? "in" : "out";
+        note = "Contributor exited after rejection";
+      }
+
+      if (include) {
+        entries.push({
+          id: `${bounty.id}-resolved`,
+          title: bountyLabel,
+          event,
+          amount: reward,
+          direction,
+          status,
+          date: bounty.resolvedAt,
+          note,
+        });
+      }
+    }
+  }
+
+  return entries.sort((a, b) => Number(b.date || 0) - Number(a.date || 0));
+}
+
+function renderTransactions() {
+  const u = state.currentUser;
+  const entries = buildTransactionHistory(u);
+  return `
+    <div class="glass-panel">
+      <div class="panel-header">
+        <h2 class="panel-title">Transactions</h2>
+        <div style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.12em;">${entries.length} records</div>
+      </div>
+      <p style="color:var(--text-secondary); font-size:13px; margin:-6px 0 18px;">
+        Lifecycle history derived from your bounty actions: escrow funding, submissions, dispute states, payouts, and refunds.
+      </p>
+      ${
+        entries.length
+          ? `<div style="display:grid; gap:12px;">
+              ${entries
+                .map(
+                  (entry) => `
+                    <div style="display:grid; grid-template-columns:minmax(0,1.5fr) minmax(140px,0.7fr) minmax(170px,0.8fr) minmax(170px,0.8fr); gap:16px; align-items:center; padding:16px 18px; border-radius:18px; border:1px solid var(--border); background:rgba(255,255,255,0.02);">
+                      <div style="min-width:0;">
+                        <div style="font-weight:700; font-size:14px; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(entry.title)}</div>
+                        <div style="margin-top:4px; font-size:12px; color:var(--text-secondary);">${escapeHtml(entry.event)}</div>
+                        <div style="margin-top:4px; font-size:12px; color:var(--text-secondary);">${escapeHtml(entry.note || "")}</div>
+                      </div>
+                      <div style="font-size:14px; font-weight:700; color:${entry.direction === "in" ? "var(--success)" : entry.direction === "out" ? "var(--text-primary)" : "var(--text-secondary)"};">${getTransactionAmountLabel(entry)}</div>
+                      <div>
+                        <div style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.12em;">Status</div>
+                        <div style="margin-top:4px; font-size:13px; color:var(--text-primary);">${escapeHtml(entry.status)}</div>
+                      </div>
+                      <div>
+                        <div style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.12em;">Date</div>
+                        <div style="margin-top:4px; font-size:13px; color:var(--text-primary);">${escapeHtml(formatEventDate(entry.date))}</div>
+                      </div>
+                    </div>`,
+                )
+                .join("")}
+            </div>`
+          : `<div style="padding:18px; border-radius:18px; border:1px solid var(--border); background:rgba(255,255,255,0.02); color:var(--text-secondary);">
+              No transaction history yet. Once you post, accept, submit, or settle bounties, entries will appear here.
+            </div>`
+      }
+    </div>
+  `;
+}
+
+function renderProfile() {
+  const u = state.currentUser;
+  const score = getUserScore(u);
+  const tier = getTier(score);
+  const activeBounties = getActiveUserBounties(u);
+  const completedBounties = db.bounties.filter(
+    (b) =>
+      (isSettledStatus(b.status) || b.status === STATUS_CANCELLED) &&
+      (b.contributor === u.address || b.creator === u.address),
+  ).length;
+  const addrSafe = escapeHtml(u.address);
+  const alias = (u.name || "").trim();
+  const profileHeading = alias && alias !== u.address ? escapeHtml(alias) : "Your wallet";
+  const av = escapeHtml(userLabel(u).charAt(0).toUpperCase());
+  const onChainAddr = isLikelyAlgorandAddress(u.address);
+  let algoBalValueHtml = "—";
+  let algoBalSub = onChainAddr
+    ? "LocalNet"
+    : "Load a LocalNet address below to read on-chain balance";
+  if (onChainAddr) {
+    if (state.algoBalanceLoading) {
+      algoBalValueHtml = '<span class="algo-bal-num">…</span>';
+      algoBalSub = "LocalNet · fetching…";
+    } else if (state.algoBalanceMicro != null) {
+      const formatted = formatAlgosFromMicro(state.algoBalanceMicro);
+      if (formatted != null) {
+        algoBalValueHtml = `<span class="algo-bal-num">${formatted}</span><span class="algo-bal-unit">ALGO</span>`;
+      } else {
+        algoBalValueHtml = "—";
+      }
+      algoBalSub = "LocalNet · on-chain balance";
+    } else if (state.algoBalanceError) {
+      algoBalValueHtml = "—";
+      algoBalSub = `LocalNet · <span style="color:var(--danger)" title="${escapeHtml(state.algoBalanceError)}">unavailable</span>`;
+    } else {
+      algoBalSub = "LocalNet · open tab or refresh";
+    }
+  }
+  return `
+    <div class="glass-panel profile-dash">
+      <div class="profile-dash__avatar">${av}</div>
+      <h2 class="profile-dash__title">${profileHeading}</h2>
+      <div class="profile-dash__address-wrap">
+        <div class="profile-dash__address-label">Wallet address</div>
+        <pre class="profile-dash__address-full" id="profileWalletAddress">${addrSafe}</pre>
+        <div class="profile-dash__address-actions">
+          <button type="button" class="btn btn-secondary" style="padding:10px 16px; font-size:11px;" onclick="copyProfileAddress()">Copy address</button>
+        </div>
+      </div>
+
+      <div class="profile-dash__stats">
+        <div class="profile-dash__stat">
+          <div class="profile-dash__stat-label">Credit Score</div>
+          <div class="profile-dash__stat-value" style="color:${getTierColor(tier)};">${score}</div>
+          <div class="profile-dash__stat-sub">Tier: <span style="color:${getTierColor(tier)}">${tier}</span></div>
+        </div>
+        <div class="profile-dash__stat">
+          <div class="profile-dash__stat-label">Completed</div>
+          <div class="profile-dash__stat-value" style="color:var(--success);">${completedBounties}</div>
+          <div class="profile-dash__stat-sub">Bounties finished</div>
+        </div>
+        <div class="profile-dash__stat">
+          <div class="profile-dash__stat-label">${svgAlgo} ALGO balance</div>
+          <div class="profile-dash__stat-value profile-dash__stat-value--algo" style="color:var(--accent);">${algoBalValueHtml}</div>
+          <div class="profile-dash__stat-sub" style="display:flex; flex-wrap:wrap; align-items:center; gap:8px;">
+            <span>${onChainAddr ? algoBalSub : escapeHtml(algoBalSub)}</span>
+            ${onChainAddr ? `<button type="button" class="btn btn-secondary" style="padding:4px 10px; font-size:10px;" onclick="refreshAlgoBalance()">Refresh</button>` : ""}
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-panel" style="margin-top:20px; padding:22px;">
+        <div class="panel-header" style="margin-bottom:16px;">
+          <h3 class="panel-title" style="font-size:20px;">Active bounties</h3>
+          <div style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.12em;">${activeBounties.length} live</div>
+        </div>
+        ${
+          activeBounties.length
+            ? `<div style="display:grid; gap:12px;">
+                ${activeBounties
+                  .map(
+                    (b) => `
+                      <div style="display:flex; justify-content:space-between; align-items:center; gap:18px; padding:16px 18px; border-radius:16px; border:1px solid var(--border); background:rgba(255,255,255,0.02); cursor:pointer;" onclick="state.viewingBounty='${b.id}'; switchTab('view')">
+                        <div style="min-width:0;">
+                          <div style="font-size:14px; font-weight:700; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(b.title)}</div>
+                          <div style="margin-top:4px; font-size:12px; color:var(--text-secondary);">${escapeHtml(STATUS_LABEL[b.status] || "Unknown")} · Deadline ${escapeHtml(new Date(b.deadline).toLocaleDateString())}</div>
+                        </div>
+                        <div style="flex-shrink:0; font-size:14px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:6px;">${svgAlgo} ${Number(b.reward || 0).toLocaleString()}</div>
+                      </div>`,
+                  )
+                  .join("")}
+              </div>`
+            : `<div style="padding:16px 18px; border-radius:16px; border:1px solid var(--border); background:rgba(255,255,255,0.02); color:var(--text-secondary);">
+                No active bounties linked to this profile right now.
+              </div>`
+        }
+      </div>
+
+      <div class="glass-panel" style="margin-top:20px; padding:22px;">
+        <div class="panel-header" style="margin-bottom:16px;">
+          <h3 class="panel-title" style="font-size:20px;">Local backup</h3>
+          <div style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.12em;">local demo recovery</div>
+        </div>
+        <p style="color:var(--text-secondary); font-size:13px; line-height:1.65; margin:0 0 16px;">
+          Export a portable JSON backup of this browser’s bounty database and oracle test materials. Import it after a redeploy, browser reset, or on another machine to restore your local workspace.
+        </p>
+        <div style="display:flex; flex-wrap:wrap; gap:12px;">
+          <button type="button" class="btn btn-primary" onclick="downloadLocalBackup()">Export local backup</button>
+          <button type="button" class="btn btn-secondary" onclick="triggerBackupImport()">Import backup</button>
+          <input type="file" id="backupImportInput" accept="application/json,.json" style="display:none" onchange="handleBackupImport(event)">
+        </div>
+        <div style="margin-top:12px; font-size:12px; color:var(--text-secondary); line-height:1.6;">
+          Keep the backup file safe. It contains your local demo bounty records and any saved oracle test material.
+        </div>
+      </div>
+
+      <div class="profile-dash__rules">
+        <strong>Score Deltas (Contract Rules):</strong><br>
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span> Approved: <span style="color:var(--success)">+${SCORE_APPROVED}</span> ·
+        <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span> Auto-release: <span style="color:var(--success)">+${SCORE_AUTO}</span> ·
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span> Dispute Win: <span style="color:var(--success)">+${SCORE_DISPUTE_WIN}</span><br>
+        <span class="ico"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span> Dispute Loss: <span style="color:var(--danger)">${SCORE_DISPUTE_LOSS}</span> ·
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Withdraw before submit: <span style="color:var(--warning)">${SCORE_WITHDRAW_ACCEPT}</span> ·
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Opt-out (after reject): <span style="color:var(--warning)">${SCORE_OPT_OUT}</span> ·
+        <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg></span> Creator cancel (assignee, before deadline): <span style="color:var(--warning)">${SCORE_CREATOR_CANCEL_ACTIVE}</span> ·
+        <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg></span> Creator cancel (assignee, after deadline): <span style="color:var(--danger)">${SCORE_FAILED_TO_SUBMIT}</span> ·
+        <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg></span> Expired: <span style="color:var(--danger)">${SCORE_EXPIRE}</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderBountyDetail(id) {
+  const b = db.bounties.find(x => x.id === id);
+  const u = state.currentUser;
+  if (!b) return "";
+
+  const isCreator = u.address === b.creator;
+  const isContributor = u.address === b.contributor;
+  const st = b.status;
+  /** Deliverable / execution logs — visible only to the two dispute participants. */
+  const canViewPrivateSubmission = isCreator || isContributor;
+  const hasSubmission = Boolean(b.workIpfsHash);
+  const hasEncryptedSubmission = false;
+  const sessionPlain = null;
+  const revealed = null;
+
+  // Tracker step states
+  const s1 = st >= 0 ? 'done' : '';
+  const s2 = st >= 1 ? 'done' : (st === 0 ? 'active' : '');
+  const s3 = st >= 2 ? 'done' : (st === 1 ? 'active' : '');
+  const isFinal = isSettledStatus(st) || isCancelledStatus(st);
+  const isDispPath = st === STATUS_REJECTED || st === STATUS_DISPUTED;
+  const s4 = isFinal ? 'done' : (st === STATUS_SUBMITTED ? 'active' : (isDispPath ? 'active' : ''));
+
+  // Dispute window remaining
+  const disputeLeft = b.rejectedAt ? timeRemaining(b.rejectedAt + DISPUTE_WINDOW_MS) : '';
+  const disputeExpired = Boolean(b.rejectedAt && Date.now() >= b.rejectedAt + DISPUTE_WINDOW_MS);
+  // Auto-release remaining
+  const autoLeft = b.submittedAt ? timeRemaining(b.submittedAt + AUTO_RELEASE_SILENCE_MS) : '';
+
+  const specRefUrl = (b.specReferenceUrl || "").trim();
+  const specRefSafe =
+    specRefUrl && /^https?:\/\//i.test(specRefUrl) ? specRefUrl : "";
+  const attachedSpecsHtml =
+    b.attachedSpecs && b.attachedSpecs.length
+      ? b.attachedSpecs
+          .map(
+            (a) => `
+      <details style="margin-bottom:12px; border:1px solid var(--border); border-radius:10px; padding:10px 14px; background:var(--bg-base);">
+        <summary style="cursor:pointer; font-weight:600; font-size:14px;">${escapeHtml(a.name || "file")} <span style="font-weight:400; font-size:11px; color:var(--text-secondary);">${escapeHtml(a.mime || "")}</span></summary>
+        <pre style="margin-top:12px; font-size:12px; line-height:1.45; max-height:280px; overflow:auto; white-space:pre-wrap; word-break:break-word; color:var(--text-primary);">${escapeHtml(a.content || "")}</pre>
+      </details>`,
+          )
+          .join("")
+      : "";
+
+  return `
+    <div class="glass-panel">
+      <button class="btn btn-secondary" style="padding:6px 12px; margin-bottom:24px; font-size:12px;" onclick="switchTab('browse')">← Back</button>
+      
+      <div class="flex-between" style="align-items:flex-start; margin-bottom: 32px">
+        <div>
+          <h1 style="font-size: 32px; font-weight: 800; margin-bottom: 12px;">${b.title}</h1>
+          <div class="bounty-meta">
+            <span class="badge badge-tag">${b.tag}</span>
+            <span>Ref: <span style="font-family:monospace;font-size:11px;">${String(b.id).slice(0, 8)}…</span></span>
+            <span>Creator: <span style="font-family:monospace">${escapeHtml(userLabel(getUser(b.creator)))}</span></span>
+            <span>Dispute Mode: <span style="color:var(--text-primary)">Auto-generated technical checks</span></span>
+            <span style="color:${STATUS_COLOR[st]}">● ${STATUS_LABEL[st]}</span>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:12px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; margin-bottom:4px">Bounty Reward</div>
+          <div style="font-size: 40px; font-weight: 800; color: var(--success); display:flex; align-items:center; justify-content:flex-end; gap:8px;">
+            ${svgAlgo} ${b.reward.toLocaleString()}
+          </div>
+        </div>
+      </div>
+
+      <div style="padding: 24px; background: var(--bg-base); border-radius: 16px; border: 1px solid var(--border); margin-bottom: 32px; font-size:15px; line-height:1.7;">
+        ${b.desc || "No description provided."}
+      </div>
+
+      ${specRefSafe ? `
+      <div style="padding: 18px 20px; background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 16px; margin-bottom: 24px;">
+        <strong style="color:var(--accent); display:block; margin-bottom:8px; font-size:14px;">External materials</strong>
+        <a href="${escapeHtml(specRefSafe)}" target="_blank" rel="noopener noreferrer" style="word-break:break-all; font-size:14px;">${escapeHtml(specRefSafe)}</a>
+      </div>
+      ` : ""}
+      ${attachedSpecsHtml ? `
+      <div style="padding: 20px; background: var(--bg-surface); border-radius: 16px; border: 1px solid var(--border); margin-bottom: 24px;">
+        <strong style="font-size:15px; display:block; margin-bottom:8px;">Attached specification files</strong>
+        <p style="font-size:12px; color:var(--text-secondary); margin:0 0 12px;">Uploaded when the bounty was posted; their contents are mixed into the criteria hash.</p>
+        ${attachedSpecsHtml}
+      </div>
+      ` : ""}
+
+      ${b.testSuiteHash ? `
+      <div style="padding: 20px; background: var(--bg-surface); border-radius: 16px; border: 1px dashed rgba(99, 102, 241, 0.4); margin-bottom: 32px; font-size:14px; line-height:1.6;">
+        <strong style="color:var(--accent); display:flex; align-items:center; gap:6px; margin-bottom:12px; font-size:16px;"><span class="ico"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span> Verification (commitment)</strong>
+        <div style="color:var(--text-secondary); white-space: pre-wrap; font-family: monospace;">SHA-256 hash of test suite (raw text stays on the creator’s device for the oracle).</div>
+        <div style="color:var(--text-secondary); white-space: pre-wrap; font-family: monospace; margin-top:8px;">${escapeHtml(b.testSuiteHash)}</div>
+      </div>
+      ` : ''}
+
+      <!-- TRACKER -->
+      <div class="tracker">
+        <div class="track-step ${s1}">
+          <div class="track-icon">1</div>
+          <div class="track-label">Escrowed</div>
+        </div>
+        <div class="track-step ${s2}">
+          <div class="track-icon">2</div>
+          <div class="track-label">Accepted</div>
+        </div>
+        <div class="track-step ${s3}">
+          <div class="track-icon">3</div>
+          <div class="track-label">Submitted</div>
+        </div>
+        <div class="track-step ${s4}">
+          <div class="track-icon">${isDispPath ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' : (isFinal ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '4')}</div>
+          <div class="track-label">${st === STATUS_REJECTED ? '<span style="color:var(--danger)">Rejected</span>' : st === STATUS_DISPUTED ? '<span style="color:var(--warning)">Disputed</span>' : st === STATUS_OPTED_OUT ? '<span style="color:#9ca3af">Opted Out</span>' : st === STATUS_CANCELLED ? '<span style="color:#a8a29e">Cancelled</span>' : st === STATUS_RESOLVED_CREATOR ? '<span style="color:var(--danger)">Creator Won</span>' : isSettledStatus(st) ? '<span style="color:var(--success)">Settled</span>' : 'Review'}</div>
+        </div>
+      </div>
+
+      <!-- DELIVERABLE: E2EE (AES-GCM + RSA-OAEP to creator pubkey); legacy cleartext link -->
+      ${hasEncryptedSubmission && isCreator ? `
+        <div style="padding: 16px; background: rgba(16, 185, 129, 0.08); border: 1px solid var(--success); border-radius: 12px; margin-bottom: 32px;">
+          <strong style="color:var(--success);">Encrypted deliverable</strong>
+          <p style="margin:10px 0 12px; font-size:13px; color:var(--text-secondary);">Only your browser (where you posted the bounty) holds the RSA private key. Ciphertext is in local data; others see no plaintext.</p>
+          ${b.githubContentFrozenHash ? `<div style="font-size:12px; color:var(--success); margin-bottom:8px;">GitHub file <strong>snapshotted at submit</strong> (oracle fails if remote file changes): <span style="font-family:monospace;">${escapeHtml(b.githubContentFrozenHash.slice(0, 20))}…</span></div>` : ""}
+          ${b.submissionContentHash ? `<div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px;">Integrity commitment (SHA-256 of plaintext): <span style="font-family:monospace;">${escapeHtml(b.submissionContentHash.slice(0, 24))}…</span></div>` : ""}
+          ${!revealed ? `<button type="button" class="btn btn-primary" style="margin-top:4px;" onclick="revealEncryptedSubmission('${b.id}')">Decrypt &amp; view submission</button>` : ""}
+          ${revealed ? `<pre style="margin-top:12px; padding:12px; background:rgba(0,0,0,0.35); border-radius:8px; font-size:12px; white-space:pre-wrap; word-break:break-word; max-height:320px; overflow:auto;">${escapeHtml(revealed)}</pre>` : ""}
+        </div>
+      ` : ""}
+      ${hasEncryptedSubmission && isContributor && canViewPrivateSubmission ? `
+        <div style="padding: 16px; background: rgba(99, 102, 241, 0.1); border: 1px solid var(--accent); border-radius: 12px; margin-bottom: 32px; font-size: 14px;">
+          <strong style="color:var(--accent);">Your submission is end-to-end encrypted</strong> for the creator. The shared database only stores ciphertext.
+          ${sessionPlain ? `<pre style="margin-top:10px; padding:12px; background:rgba(0,0,0,0.25); border-radius:8px; font-size:12px; white-space:pre-wrap; max-height:200px; overflow:auto;">Your copy (this tab only):<br/>${escapeHtml(sessionPlain.length > 4000 ? sessionPlain.slice(0, 4000) + "…" : sessionPlain)}</pre>` : `<p style="margin-top:8px; color:var(--text-secondary);">Plaintext preview was cleared (new tab/session). The creator can still decrypt.</p>`}
+        </div>
+      ` : ""}
+      ${hasEncryptedSubmission && !canViewPrivateSubmission ? `
+        <div style="padding: 14px 16px; background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 12px; margin-bottom: 32px; font-size: 14px; color: var(--text-secondary);">
+          <strong style="color:var(--accent);">Confidential submission.</strong> Ciphertext is stored locally; plaintext is only for the creator (RSA) and briefly in the contributor’s session for automated oracle runs.
+        </div>
+      ` : ""}
+      ${!hasEncryptedSubmission && b.workIpfsHash && canViewPrivateSubmission ? `
+        <div style="padding: 16px; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--success); border-radius: 12px; margin-bottom: 32px; color: var(--text-primary);">
+          <strong style="color:var(--success); display:flex; align-items:center; gap:6px;"><span class="ico"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span> Contributor deliverable:</strong>
+          <pre style="margin-top:8px; padding:12px; background:rgba(0,0,0,0.2); border-radius:8px; font-family:monospace; white-space:pre-wrap; word-break:break-word; max-height:320px; overflow:auto;">${escapeHtml(b.workIpfsHash)}</pre>
+        </div>
+      ` : ''}
+      ${!hasEncryptedSubmission && b.workIpfsHash && !canViewPrivateSubmission ? `
+        <div style="padding: 14px 16px; background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 12px; margin-bottom: 32px; font-size: 14px; color: var(--text-secondary);">
+          <strong style="color:var(--accent);">Private submission.</strong> Visible only to creator and assignee during dispute.
+        </div>
+      ` : ''}
+
+      <!-- ORACLE LOG OUTPUT -->
+      ${b.oracleLog && canViewPrivateSubmission ? `
+        <div style="padding: 16px; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 32px;">
+          <strong style="color:var(--text-secondary); font-size:12px; text-transform:uppercase; letter-spacing:0.5px; display:flex; align-items:center; gap:6px;"><span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M7.76 7.76 4.93 4.93M21 12h-3M6 12H3M12 21v-3M12 6V3"/></svg></span> Oracle Evaluation Log</strong>
+          <pre style="margin-top:8px; padding:12px; background:rgba(0,0,0,0.6); color:#a8b2d1; border-radius:8px; font-family:monospace; font-size:13px; overflow-x:auto; white-space:pre-wrap;">${escapeHtml(b.oracleLog || "No output")}</pre>
+        </div>
+      ` : ''}
+
+      <!-- AUTO-RELEASE TIMER -->
+      ${st === STATUS_SUBMITTED && b.submittedAt && (isCreator || isContributor) ? `
+        <div style="padding:12px; background:rgba(99,102,241,0.1); border:1px solid var(--accent); border-radius:12px; margin-bottom:16px; font-size:13px; color:var(--accent);">
+          <span style="display:flex;align-items:center;gap:6px;"><span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg></span><strong>Auto-release timer:</strong></span> If creator doesn't respond, funds auto-release in <strong>${autoLeft}</strong> (5 min demo)
+        </div>
+      ` : ''}
+
+      <!-- ACTIONS -->
+      <div style="display:flex; gap: 16px; flex-wrap:wrap;">
+
+        ${st === STATUS_OPEN && !isCreator && u.role === "contributor" ? `
+          <button class="btn btn-primary" onclick="actAccept('${b.id}')">Accept & Begin Work</button>
+        ` : ''}
+
+        ${st === STATUS_ACCEPTED && isContributor ? `
+          <button class="btn btn-primary" onclick="openSubmitModal('${b.id}')">Submit Completed Work</button>
+          <button type="button" class="btn btn-secondary" onclick="actWithdrawAccept('${b.id}')"><span class="ico"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Withdraw (${SCORE_WITHDRAW_ACCEPT} score) — reopen bounty</button>
+        ` : ''}
+
+        ${(st === STATUS_OPEN || st === STATUS_ACCEPTED) && isCreator ? `
+          <button type="button" class="btn btn-danger" onclick="actCreatorCancel('${b.id}')"><span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg></span> Cancel bounty &amp; reclaim escrow</button>
+        ` : ''}
+
+        ${st === STATUS_SUBMITTED && isCreator ? `
+          <button class="btn btn-success" onclick="actApprove('${b.id}')"><span class="ico"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span> Approve Work &amp; Pay ${svgAlgo} ${b.reward}</button>
+          <button class="btn btn-danger" onclick="actReject('${b.id}')"><span class="ico"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span> Reject Work</button>
+        ` : ''}
+
+        ${st === STATUS_REJECTED && isContributor && !disputeExpired ? `
+          <div style="width:100%; padding:16px; background:rgba(239,68,68,0.1); border:1px solid var(--danger); border-radius:12px; margin-bottom:8px; color:var(--text-primary);">
+            <strong style="color:var(--danger);">Work Rejected.</strong> During <strong>${disputeLeft}</strong> you can <strong>raise a dispute</strong> (escrow stays locked for automated rules evaluation) or <strong>opt out</strong> (forfeit — funds return to creator, score penalty).
+          </div>
+          <button class="btn btn-primary" onclick="actDispute('${b.id}')"><span class="ico"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span> Raise Dispute</button>
+          <button class="btn btn-secondary" onclick="actOptOut('${b.id}')"><span class="ico"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> Opt Out (${SCORE_OPT_OUT} score — refund creator)</button>
+        ` : ''}
+
+        ${st === STATUS_REJECTED && isContributor && disputeExpired ? `
+          <div style="width:100%; padding:16px; background:rgba(245,158,11,0.1); border:1px solid var(--warning); border-radius:12px; color:var(--text-primary);">
+            <strong style="color:var(--warning);">Dispute window ended.</strong> You can no longer dispute or opt out. The creator may reopen this bounty for another contributor if the deadline has not passed.
+          </div>
+        ` : ''}
+
+        ${st === STATUS_REJECTED && isCreator && !disputeExpired ? `
+          <div style="width:100%; padding:16px; background:rgba(239,68,68,0.1); border:1px solid var(--danger); border-radius:12px; color:var(--text-primary);">
+            <strong>Work rejected.</strong> Contributor has <strong>${disputeLeft}</strong> to dispute or opt out. You can reopen after that window if they do nothing and the bounty deadline is still in the future (same rules as the contract).
+          </div>
+        ` : ''}
+
+        ${st === STATUS_REJECTED && isCreator && disputeExpired && Date.now() < b.deadline ? `
+          <button class="btn btn-primary" onclick="actReopen('${b.id}')"><span class="ico"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></span> Reopen for another contributor</button>
+        ` : ''}
+
+        ${st === STATUS_REJECTED && isCreator && disputeExpired && Date.now() >= b.deadline ? `
+          <div style="width:100%; padding:16px; background:rgba(156,163,175,0.15); border:1px solid #9ca3af; border-radius:12px; color:var(--text-secondary);">
+            Dispute window ended, but the bounty deadline has passed — reopen is not allowed (matches contract).
+          </div>
+        ` : ''}
+
+        ${st === STATUS_REJECTED && !isCreator && !isContributor ? `
+          <div style="width:100%; padding:16px; background:rgba(239,68,68,0.1); border:1px solid var(--danger); border-radius:12px; color:var(--danger);">
+            <strong>Work Rejected.</strong> ${disputeExpired ? "Dispute window ended — creator may reopen if before deadline." : `Waiting for contributor to Dispute or Opt Out (${disputeLeft} remaining).`}
+          </div>
+        ` : ''}
+
+        ${st === STATUS_DISPUTED ? `
+          <div style="width:100%; border-radius:12px; padding:16px; background:rgba(245, 158, 11, 0.1); border:1px solid var(--warning); color:var(--warning); display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <span style="animation: pulse 1s infinite" class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M7.76 7.76 4.93 4.93M21 12h-3M6 12H3M12 21v-3M12 6V3"/></svg></span>
+              <strong>Oracle Activated:</strong> Evaluating GitHub CI pipeline, bot comment, and final workflow verdict...
+            </div>
+          </div>
+        ` : ''}
+
+        ${isSettledStatus(st) ? `
+          <div style="width:100%; color:var(--success); font-weight:700; display:flex; align-items:center; gap:8px; padding:16px; background:rgba(16,185,129,0.1); border:1px solid var(--success); border-radius:12px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            Bounty Completed — Funds Distributed to Contributor
+          </div>
+        ` : ''}
+
+        ${isCancelledStatus(st) ? `
+          <div style="width:100%; padding:16px; background:rgba(156,163,175,0.1); border:1px solid #9ca3af; border-radius:12px; color:#9ca3af;">
+            ${st === STATUS_OPTED_OUT
+              ? `<span class="ico"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span> <strong>Contributor opted out.</strong> Score penalty of ${SCORE_OPT_OUT} applied. Bounty lifecycle ended.`
+              : st === STATUS_CANCELLED
+              ? `<strong>Creator cancelled the bounty.</strong> Escrow returns to the creator (on-chain: <code style="font-size:11px;">creator_cancel_bounty</code>). If someone had accepted before submit, they were scored down per contract rules.`
+              : `<strong>Creator won dispute.</strong> Escrow returned to the creator.`}
+          </div>
+        ` : ''}
+
+      </div>
+    </div>
+  `;
+}
+
+// Initial render
+window.onload = async () => {
+  try {
+    if (C) {
+      C.applyLocalnetAlgod();
+    }
+  } catch (error) {
+    console.warn("Initial LocalNet bootstrap failed", error);
+  }
+  render();
+};
+
+</script>
+</body>
+</html>

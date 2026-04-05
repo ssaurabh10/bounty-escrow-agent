@@ -1,0 +1,226 @@
+{
+    "name": "BountyEscrowAgent",
+    "methods": [
+        {
+            "name": "create",
+            "args": [],
+            "returns": {
+                "type": "void"
+            },
+            "desc": "Application creation \u2014 initializes empty bounty."
+        },
+        {
+            "name": "post_bounty",
+            "args": [
+                {
+                    "type": "string",
+                    "name": "criteria_hash"
+                },
+                {
+                    "type": "string",
+                    "name": "test_suite_hash"
+                },
+                {
+                    "type": "uint64",
+                    "name": "deadline_unix"
+                },
+                {
+                    "type": "string",
+                    "name": "arbitrator_type"
+                },
+                {
+                    "type": "address",
+                    "name": "arbitrator_addr"
+                },
+                {
+                    "type": "pay",
+                    "name": "payment"
+                }
+            ],
+            "returns": {
+                "type": "void"
+            },
+            "desc": "Creator posts a bounty and funds the escrow.\nMust be called with a grouped payment transaction."
+        },
+        {
+            "name": "accept_bounty",
+            "args": [],
+            "returns": {
+                "type": "void"
+            },
+            "desc": "Worker accepts an open bounty. Cannot self-accept."
+        },
+        {
+            "name": "withdraw_acceptance",
+            "args": [],
+            "returns": {
+                "type": "void"
+            },
+            "desc": "Contributor leaves after accepting but before submitting work.\nBounty returns to OPEN; escrow stays funded; another worker may accept."
+        },
+        {
+            "name": "creator_cancel_bounty",
+            "args": [
+                {
+                    "type": "account",
+                    "name": "creator_account"
+                }
+            ],
+            "returns": {
+                "type": "void"
+            },
+            "desc": "Creator closes the bounty and recovers escrow before any work is submitted.\nAllowed only in OPEN or ACCEPTED. If a worker had accepted, they are penalized (more severely if the bounty deadline has passed without a submission)."
+        },
+        {
+            "name": "submit_work",
+            "args": [
+                {
+                    "type": "string",
+                    "name": "ipfs_hash"
+                },
+                {
+                    "type": "string",
+                    "name": "submission_hash"
+                }
+            ],
+            "returns": {
+                "type": "void"
+            },
+            "desc": "Worker submits work plus a frozen evidence hash of the submitted artifact.\nNote: Global state is world-readable. For confidentiality, store only a hash or ciphertext metadata on-chain; keep plaintext or decryption keys off-chain."
+        },
+        {
+            "name": "approve_work",
+            "args": [
+                {
+                    "type": "account",
+                    "name": "contributor_account"
+                }
+            ],
+            "returns": {
+                "type": "void"
+            },
+            "desc": "Creator approves the submitted work \u2014 triggers payout to contributor."
+        },
+        {
+            "name": "reject_work",
+            "args": [],
+            "returns": {
+                "type": "void"
+            },
+            "desc": "Creator rejects the work. Starts 5-min dispute window (5 days in prod)."
+        },
+        {
+            "name": "raise_dispute",
+            "args": [],
+            "returns": {
+                "type": "void"
+            },
+            "desc": "Contributor disputes rejection. Must be within dispute window."
+        },
+        {
+            "name": "opt_out",
+            "args": [
+                {
+                    "type": "account",
+                    "name": "creator_account"
+                }
+            ],
+            "returns": {
+                "type": "void"
+            },
+            "desc": "Contributor forfeits \u2014 funds returned to creator."
+        },
+        {
+            "name": "reopen_after_rejection",
+            "args": [],
+            "returns": {
+                "type": "void"
+            },
+            "desc": "Creator re-lists the bounty for a new contributor after a rejection.\nOnly after the dispute window has ended (contributor did not dispute in time), and while the original bounty deadline has not passed. Escrow stays in the app; reward_amount is unchanged. Clears contributor and submission fields."
+        },
+        {
+            "name": "auto_release_after_silence",
+            "args": [
+                {
+                    "type": "account",
+                    "name": "contributor_account"
+                }
+            ],
+            "returns": {
+                "type": "void"
+            },
+            "desc": "Anti-ghosting: if creator is silent for 5 min (5 days in prod),\nanyone can call this to release funds to contributor."
+        },
+        {
+            "name": "oracle_verdict",
+            "args": [
+                {
+                    "type": "string",
+                    "name": "result"
+                },
+                {
+                    "type": "string",
+                    "name": "observed_submission_hash"
+                },
+                {
+                    "type": "string",
+                    "name": "oracle_output_hash"
+                },
+                {
+                    "type": "string",
+                    "name": "verdict_reason_hash"
+                },
+                {
+                    "type": "account",
+                    "name": "creator_account"
+                },
+                {
+                    "type": "account",
+                    "name": "contributor_account"
+                }
+            ],
+            "returns": {
+                "type": "void"
+            },
+            "desc": "Automated oracle verdict for code bounties.\nresult = \"PASS\" \u2192 pay contributor | \"FAIL\" \u2192 refund creator"
+        },
+        {
+            "name": "get_status",
+            "args": [],
+            "returns": {
+                "type": "uint64"
+            },
+            "desc": "Returns the current contract status (0-8)."
+        },
+        {
+            "name": "get_credit_score",
+            "args": [
+                {
+                    "type": "account",
+                    "name": "account"
+                }
+            ],
+            "returns": {
+                "type": "uint64"
+            },
+            "desc": "Returns the contributor's on-chain reputation score."
+        },
+        {
+            "name": "get_bounty_info",
+            "args": [],
+            "returns": {
+                "type": "(address,address,uint64,uint64,string,string)"
+            },
+            "desc": "Returns full bounty details as a named tuple."
+        },
+        {
+            "name": "get_evidence_info",
+            "args": [],
+            "returns": {
+                "type": "(string,string,string,string,uint64)"
+            },
+            "desc": "Returns stored evidence hashes and oracle verdict metadata."
+        }
+    ],
+    "networks": {}
+}

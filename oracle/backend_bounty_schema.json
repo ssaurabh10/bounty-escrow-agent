@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bounty Escrow Agent Backend Bounty Schema",
+  "description": "Generic business-language intake schema for backend/API bounties posted by non-technical creators.",
+  "type": "object",
+  "required": [
+    "project_type",
+    "creator_language",
+    "business_goal",
+    "delivery_mode",
+    "feature_flags",
+    "acceptance_expectations"
+  ],
+  "properties": {
+    "project_type": {
+      "type": "string",
+      "description": "Plain-language description of the backend project category.",
+      "minLength": 3
+    },
+    "creator_language": {
+      "type": "string",
+      "enum": [
+        "plain_business"
+      ]
+    },
+    "business_goal": {
+      "type": "string",
+      "description": "Non-technical description of what the creator wants built.",
+      "minLength": 10
+    },
+    "target_users": {
+      "type": "array",
+      "description": "Who will use the backend-powered product.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "delivery_mode": {
+      "type": "object",
+      "required": [
+        "deployed_api_required",
+        "documentation_required"
+      ],
+      "properties": {
+        "deployed_api_required": {
+          "type": "boolean"
+        },
+        "documentation_required": {
+          "type": "boolean"
+        },
+        "openapi_required": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "feature_flags": {
+      "type": "object",
+      "description": "Business-level toggles that the platform can translate into technical routes, auth requirements, and checks.",
+      "properties": {
+        "customer_accounts": { "type": "boolean" },
+        "login_required": { "type": "boolean" },
+        "admin_panel_required": { "type": "boolean" },
+        "catalog_or_listing_required": { "type": "boolean" },
+        "create_records_required": { "type": "boolean" },
+        "record_lookup_required": { "type": "boolean" },
+        "payment_or_webhook_required": { "type": "boolean" },
+        "notifications_required": { "type": "boolean" },
+        "health_endpoint_required": { "type": "boolean" }
+      },
+      "additionalProperties": {
+        "type": "boolean"
+      }
+    },
+    "acceptance_expectations": {
+      "type": "object",
+      "required": [
+        "json_api",
+        "auth_required",
+        "core_entities"
+      ],
+      "properties": {
+        "json_api": {
+          "type": "boolean"
+        },
+        "auth_required": {
+          "type": "boolean"
+        },
+        "role_separation_required": {
+          "type": "boolean"
+        },
+        "core_entities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "must_support_crud_for": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "performance_notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

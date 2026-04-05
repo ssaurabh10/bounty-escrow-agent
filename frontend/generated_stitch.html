@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#c7c6c6",
+                    "surface-tint": "#c6c6c7",
+                    "on-surface-variant": "#c6c6c6",
+                    "primary-container": "#d4d4d4",
+                    "on-primary-fixed": "#ffffff",
+                    "primary-fixed": "#5d5f5f",
+                    "primary": "#ffffff",
+                    "error": "#ffb4ab",
+                    "on-surface": "#e2e2e2",
+                    "on-tertiary-fixed": "#ffffff",
+                    "on-tertiary-container": "#000000",
+                    "on-tertiary-fixed-variant": "#e2e2e2",
+                    "outline-variant": "#474747",
+                    "surface": "#131313",
+                    "surface-container-highest": "#353535",
+                    "secondary-fixed-dim": "#ababab",
+                    "surface-container-low": "#1b1b1b",
+                    "on-error": "#690005",
+                    "surface-container-lowest": "#0e0e0e",
+                    "secondary": "#c7c6c6",
+                    "surface-variant": "#353535",
+                    "secondary-container": "#464747",
+                    "on-primary-fixed-variant": "#e2e2e2",
+                    "outline": "#919191",
+                    "surface-container-high": "#2a2a2a",
+                    "tertiary": "#e2e2e2",
+                    "surface-container": "#1f1f1f",
+                    "background": "#131313",
+                    "on-secondary-container": "#e3e2e2",
+                    "inverse-primary": "#5d5f5f",
+                    "on-primary": "#1a1c1c",
+                    "error-container": "#93000a",
+                    "surface-bright": "#393939",
+                    "surface-dim": "#131313",
+                    "on-background": "#e2e2e2",
+                    "tertiary-fixed": "#5d5e5f",
+                    "inverse-on-surface": "#303030",
+                    "primary-fixed-dim": "#454747",
+                    "on-tertiary": "#1a1c1c",
+                    "on-primary-container": "#000000",
+                    "inverse-surface": "#e2e2e2",
+                    "tertiary-container": "#909191",
+                    "on-secondary": "#1b1c1c",
+                    "on-secondary-fixed-variant": "#3b3b3c",
+                    "on-error-container": "#ffdad6",
+                    "on-secondary-fixed": "#1b1c1c",
+                    "tertiary-fixed-dim": "#454747"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Space Grotesk"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(53, 53, 53, 0.4);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+        .milled-gradient {
+            background: linear-gradient(145deg, #ffffff 0%, #d4d4d4 100%);
+        }
+        .ghost-border {
+            border: 1px solid rgba(71, 71, 71, 0.2);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body selection:bg-primary selection:text-on-primary">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-neutral-900/40 backdrop-blur-xl shadow-[0_8px_32px_rgba(255,255,255,0.08)]">
+<nav class="flex justify-between items-center px-8 py-6 max-w-screen-2xl mx-auto">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-white" data-icon="security">security</span>
+<span class="text-2xl font-bold tracking-widest text-white font-['Space_Grotesk'] uppercase">VAULT_01</span>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-white font-bold border-b-2 border-white pb-1 font-['Space_Grotesk'] tracking-tighter uppercase" href="#">BOUNTIES</a>
+<a class="text-neutral-400 font-medium hover:text-white transition-colors font-['Space_Grotesk'] tracking-tighter uppercase" href="#">GOVERNANCE</a>
+<a class="text-neutral-400 font-medium hover:text-white transition-colors font-['Space_Grotesk'] tracking-tighter uppercase" href="#">AUDITS</a>
+</div>
+<button class="milled-gradient text-on-primary-container px-6 py-2.5 rounded-full font-bold text-sm tracking-tight active:scale-95 transition-all duration-300 font-['Space_Grotesk'] uppercase">
+                CONNECT_WALLET
+            </button>
+</nav>
+</header>
+<main class="pt-32 pb-24">
+<!-- Hero Section -->
+<section class="max-w-screen-2xl mx-auto px-8 mb-32">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+<div class="lg:col-span-8">
+<h1 class="font-headline text-6xl md:text-8xl lg:text-9xl font-bold tracking-tighter leading-[0.9] text-primary mb-12">
+                        Bounty Escrow Agent: <br/>
+<span class="text-on-surface-variant">Trustless Task Completion</span>
+</h1>
+<div class="flex flex-wrap gap-6">
+<button class="milled-gradient text-on-primary-container px-10 py-5 rounded-full font-bold text-lg tracking-tight active:scale-95 transition-all duration-300 font-['Space_Grotesk'] uppercase">
+                            Connect Wallet
+                        </button>
+<button class="bg-surface-container-highest text-white px-10 py-5 rounded-full font-bold text-lg tracking-tight hover:bg-surface-bright transition-all active:scale-95 font-['Space_Grotesk'] uppercase">
+                            Browse Bounties
+                        </button>
+</div>
+</div>
+<div class="lg:col-span-4 flex flex-col gap-8">
+<div class="p-8 rounded-lg bg-surface-container-low ghost-border">
+<div class="text-on-surface-variant text-xs font-bold tracking-widest uppercase mb-4">Network_Status</div>
+<div class="flex items-center justify-between mb-2">
+<span class="text-primary font-headline text-3xl font-bold">4.2k</span>
+<span class="material-symbols-outlined text-primary" data-icon="hub">hub</span>
+</div>
+<div class="text-on-surface-variant text-sm">Active Agents Validating Nodes</div>
+</div>
+<div class="p-8 rounded-lg bg-surface-container-low ghost-border">
+<div class="text-on-surface-variant text-xs font-bold tracking-widest uppercase mb-4">Total_Value_Locked</div>
+<div class="flex items-center justify-between mb-2">
+<span class="text-primary font-headline text-3xl font-bold">$12.8M</span>
+<span class="material-symbols-outlined text-primary" data-icon="account_balance_wallet">account_balance_wallet</span>
+</div>
+<div class="text-on-surface-variant text-sm">Secured in Non-Custodial Smart Contracts</div>
+</div>
+</div>
+</div>
+</section>
+<!-- How It Works Section -->
+<section class="bg-surface-container-lowest py-32">
+<div class="max-w-screen-2xl mx-auto px-8">
+<div class="mb-20">
+<h2 class="font-headline text-4xl md:text-6xl font-bold tracking-tighter uppercase text-primary">Protocol_Flow</h2>
+<p class="text-on-surface-variant max-w-xl mt-4 text-lg">Architected for deterministic security. No intermediaries. Just math and verifiable execution.</p>
+</div>
+<div class="relative space-y-12">
+<!-- Step 1 -->
+<div class="flex flex-col md:flex-row gap-8 items-center">
+<div class="flex-none w-16 h-16 rounded-full bg-primary flex items-center justify-center text-on-primary font-headline font-bold text-2xl z-10">01</div>
+<div class="glass-card ghost-border p-8 rounded-lg flex-grow flex flex-col md:flex-row md:items-center justify-between gap-6">
+<div>
+<h3 class="font-headline text-2xl font-bold text-white uppercase tracking-tight mb-2">Deposit</h3>
+<p class="text-on-surface-variant max-w-md">Bounty funds are locked into a specialized escrow contract. Zero risk of non-payment upon completion.</p>
+</div>
+<span class="material-symbols-outlined text-4xl text-outline" data-icon="lock">lock</span>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="flex flex-col md:flex-row gap-8 items-center">
+<div class="flex-none w-16 h-16 rounded-full bg-surface-container-highest flex items-center justify-center text-primary font-headline font-bold text-2xl z-10">02</div>
+<div class="glass-card ghost-border p-8 rounded-lg flex-grow flex flex-col md:flex-row md:items-center justify-between gap-6">
+<div>
+<h3 class="font-headline text-2xl font-bold text-white uppercase tracking-tight mb-2">Execute</h3>
+<p class="text-on-surface-variant max-w-md">The agent performs the technical task. Progress is tracked via verifiable git commits or API endpoints.</p>
+</div>
+<span class="material-symbols-outlined text-4xl text-outline" data-icon="terminal">terminal</span>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="flex flex-col md:flex-row gap-8 items-center">
+<div class="flex-none w-16 h-16 rounded-full bg-surface-container-highest flex items-center justify-center text-primary font-headline font-bold text-2xl z-10">03</div>
+<div class="glass-card ghost-border p-8 rounded-lg flex-grow flex flex-col md:flex-row md:items-center justify-between gap-6">
+<div>
+<h3 class="font-headline text-2xl font-bold text-white uppercase tracking-tight mb-2">Verify</h3>
+<p class="text-on-surface-variant max-w-md">Automated test suites or peer validators confirm the output meets the cryptographically signed requirements.</p>
+</div>
+<span class="material-symbols-outlined text-4xl text-outline" data-icon="verified">verified</span>
+</div>
+</div>
+<!-- Step 4 -->
+<div class="flex flex-col md:flex-row gap-8 items-center">
+<div class="flex-none w-16 h-16 rounded-full bg-surface-container-highest flex items-center justify-center text-primary font-headline font-bold text-2xl z-10">04</div>
+<div class="glass-card ghost-border p-8 rounded-lg flex-grow flex flex-col md:flex-row md:items-center justify-between gap-6">
+<div>
+<h3 class="font-headline text-2xl font-bold text-white uppercase tracking-tight mb-2">Release</h3>
+<p class="text-on-surface-variant max-w-md">The contract automatically triggers the release of funds to the agent's wallet address. Instant settlement.</p>
+</div>
+<span class="material-symbols-outlined text-4xl text-outline" data-icon="currency_exchange">currency_exchange</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Active Bounties Section -->
+<section class="max-w-screen-2xl mx-auto px-8 py-32">
+<div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+<div>
+<h2 class="font-headline text-4xl md:text-6xl font-bold tracking-tighter uppercase text-primary">Live_Feed</h2>
+<p class="text-on-surface-variant mt-4">Real-time open tasks waiting for execution.</p>
+</div>
+<div class="flex gap-4">
+<span class="px-4 py-2 bg-surface-container-high rounded-full text-xs font-bold uppercase tracking-widest text-primary border border-white/10">Filter: All_Tasks</span>
+<span class="px-4 py-2 bg-surface-container-low rounded-full text-xs font-bold uppercase tracking-widest text-on-surface-variant border border-white/5">Sort: Reward_High</span>
+</div>
+</div>
+<div class="space-y-4">
+<!-- List Item 1 -->
+<div class="glass-card ghost-border hover:bg-surface-bright/20 transition-all p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 group">
+<div class="flex items-center gap-6">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="code">code</span>
+</div>
+<div>
+<h4 class="text-xl font-bold text-white tracking-tight group-hover:text-primary transition-colors">Smart Contract Audit: Governance V2</h4>
+<p class="text-on-surface-variant text-sm mt-1 uppercase tracking-widest font-bold">Category: Security_Audit • Deadline: 48h</p>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<div class="text-2xl font-headline font-bold text-white">4.50 ETH</div>
+<div class="text-on-surface-variant text-xs font-bold tracking-tighter uppercase mt-1">~$11,250.00 USD</div>
+</div>
+</div>
+<!-- List Item 2 -->
+<div class="glass-card ghost-border hover:bg-surface-bright/20 transition-all p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 group">
+<div class="flex items-center gap-6">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="brush">brush</span>
+</div>
+<div>
+<h4 class="text-xl font-bold text-white tracking-tight group-hover:text-primary transition-colors">Bug Bounty: Responsive UI Fix</h4>
+<p class="text-on-surface-variant text-sm mt-1 uppercase tracking-widest font-bold">Category: Frontend • Deadline: 12h</p>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<div class="text-2xl font-headline font-bold text-white">1,200 USDC</div>
+<div class="text-on-surface-variant text-xs font-bold tracking-tighter uppercase mt-1">Settled in Stable</div>
+</div>
+</div>
+<!-- List Item 3 -->
+<div class="glass-card ghost-border hover:bg-surface-bright/20 transition-all p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 group">
+<div class="flex items-center gap-6">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="description">description</span>
+</div>
+<div>
+<h4 class="text-xl font-bold text-white tracking-tight group-hover:text-primary transition-colors">Technical Documentation: SDK v4</h4>
+<p class="text-on-surface-variant text-sm mt-1 uppercase tracking-widest font-bold">Category: Content • Deadline: 5d</p>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<div class="text-2xl font-headline font-bold text-white">0.85 ETH</div>
+<div class="text-on-surface-variant text-xs font-bold tracking-tighter uppercase mt-1">~$2,125.00 USD</div>
+</div>
+</div>
+</div>
+<div class="mt-12 text-center">
+<button class="ghost-border text-on-surface px-8 py-4 rounded-full font-bold hover:bg-white/5 transition-all font-['Space_Grotesk'] uppercase tracking-widest text-sm">
+                    Load_More_Available_Contracts
+                </button>
+</div>
+</section>
+<!-- Final CTA / Bento Hybrid -->
+<section class="max-w-screen-2xl mx-auto px-8 mb-32">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="md:col-span-2 glass-card p-12 rounded-lg flex flex-col justify-center items-start">
+<h3 class="font-headline text-5xl font-bold text-white mb-6">READY_TO_COLLECT?</h3>
+<p class="text-on-surface-variant text-xl mb-10 max-w-lg">Join the world's most secure decentralized bounty ecosystem. Start executing technical tasks and earning non-custodial rewards today.</p>
+<button class="milled-gradient text-on-primary-container px-12 py-6 rounded-full font-bold text-xl tracking-tight active:scale-95 transition-all duration-300 font-['Space_Grotesk'] uppercase">
+                        INITIALIZE_PROFILE
+                    </button>
+</div>
+<div class="bg-surface-container-low rounded-lg p-12 flex flex-col justify-between overflow-hidden relative">
+<div class="relative z-10">
+<h4 class="font-headline text-2xl font-bold text-white mb-4 uppercase">Integrations</h4>
+<ul class="space-y-4 text-on-surface-variant">
+<li class="flex items-center gap-3"><span class="material-symbols-outlined text-xs" data-icon="circle" data-weight="fill">circle</span> GitHub Action Support</li>
+<li class="flex items-center gap-3"><span class="material-symbols-outlined text-xs" data-icon="circle" data-weight="fill">circle</span> Discord Bot Node</li>
+<li class="flex items-center gap-3"><span class="material-symbols-outlined text-xs" data-icon="circle" data-weight="fill">circle</span> Arbitrum &amp; L2 Native</li>
+</ul>
+</div>
+<div class="absolute -bottom-10 -right-10 opacity-10">
+<span class="material-symbols-outlined text-[15rem]" data-icon="api">api</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-neutral-950 w-full py-12 px-8 border-t border-neutral-800/20">
+<div class="flex flex-col md:flex-row justify-between items-center gap-8 w-full max-w-screen-2xl mx-auto">
+<div class="text-neutral-500 font-['Inter'] text-xs uppercase tracking-widest">
+                ©2024 TERMINAL_ESCROW_SYSTEM. ALL_RIGHTS_RESERVED.
+            </div>
+<div class="flex flex-wrap justify-center gap-8">
+<a class="text-neutral-500 hover:text-white underline-offset-4 underline transition-all font-['Inter'] text-xs uppercase tracking-widest" href="#">DOCUMENTATION</a>
+<a class="text-neutral-500 hover:text-white underline-offset-4 underline transition-all font-['Inter'] text-xs uppercase tracking-widest" href="#">API_REFERENCE</a>
+<a class="text-neutral-500 hover:text-white underline-offset-4 underline transition-all font-['Inter'] text-xs uppercase tracking-widest" href="#">SECURITY_AUDIT</a>
+<a class="text-neutral-500 hover:text-white underline-offset-4 underline transition-all font-['Inter'] text-xs uppercase tracking-widest" href="#">STATUS</a>
+</div>
+</div>
+</footer>
+</body></html>

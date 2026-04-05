@@ -1,0 +1,45 @@
+{
+  "project_type": "Business website backend",
+  "creator_language": "plain_business",
+  "business_goal": "I need the backend for my business website so customers can sign up, log in, browse offerings, create requests or orders, and I can manage everything as an admin.",
+  "target_users": [
+    "customers",
+    "business owner",
+    "admin staff"
+  ],
+  "delivery_mode": {
+    "deployed_api_required": true,
+    "documentation_required": true,
+    "openapi_required": true
+  },
+  "feature_flags": {
+    "customer_accounts": true,
+    "login_required": true,
+    "admin_panel_required": true,
+    "catalog_or_listing_required": true,
+    "create_records_required": true,
+    "record_lookup_required": true,
+    "payment_or_webhook_required": false,
+    "notifications_required": false,
+    "health_endpoint_required": true
+  },
+  "acceptance_expectations": {
+    "json_api": true,
+    "auth_required": true,
+    "role_separation_required": true,
+    "core_entities": [
+      "users",
+      "items",
+      "orders"
+    ],
+    "must_support_crud_for": [
+      "items",
+      "orders"
+    ],
+    "performance_notes": "Core read routes should feel responsive in normal usage."
+  },
+  "notes": [
+    "This is the generic business-language intake example for backend bounties.",
+    "The platform should translate this into frozen OpenAPI routes, Newman flows, and Schemathesis checks."
+  ]
+}

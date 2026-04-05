@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bharat Institute of Applied Technology</title>
+  <style>
+    :root {
+      --bg: #0b0b0b;
+      --bg-soft: #121212;
+      --panel: #171717;
+      --line: rgba(255,255,255,0.12);
+      --line-strong: rgba(255,255,255,0.22);
+      --text: #f3f3f3;
+      --muted: #b8b8b8;
+      --soft: #8e8e8e;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top right, rgba(255,255,255,0.08), transparent 28%),
+        linear-gradient(180deg, #090909 0%, #0b0b0b 100%);
+      color: var(--text);
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .topbar {
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+      font: 12px/1.4 "Segoe UI", Arial, sans-serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .wrap {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .topbar .wrap,
+    .nav .wrap,
+    .hero-grid,
+    .stats,
+    .section-grid,
+    .notice-grid,
+    .footer-grid {
+      display: flex;
+      gap: 16px;
+    }
+
+    .topbar .wrap {
+      justify-content: space-between;
+      padding: 10px 0;
+      flex-wrap: wrap;
+    }
+
+    .topbar-links,
+    .topbar-meta {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(14px);
+      background: rgba(11,11,11,0.84);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .nav .wrap {
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 56px;
+      height: 56px;
+      border: 1px solid var(--line-strong);
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      font: 700 20px/1 "Segoe UI", Arial, sans-serif;
+      letter-spacing: 0.12em;
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    }
+
+    .brand-copy {
+      min-width: 0;
+    }
+
+    .brand-copy h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-copy p {
+      margin: 6px 0 0;
+      color: var(--soft);
+      font: 12px/1.4 "Segoe UI", Arial, sans-serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 22px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      font: 13px/1.4 "Segoe UI", Arial, sans-serif;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .hero {
+      padding: 48px 0 28px;
+    }
+
+    .hero-grid {
+      align-items: stretch;
+      flex-wrap: wrap;
+    }
+
+    .hero-main,
+    .hero-side,
+    .card,
+    .notice-card,
+    .dept-card,
+    .footer-card {
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+    }
+
+    .hero-main {
+      flex: 1 1 680px;
+      padding: 34px;
+      position: relative;
+      overflow: hidden;
+      min-height: 420px;
+    }
+
+    .hero-main::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 64px 64px;
+      opacity: 0.22;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,1), transparent 90%);
+    }
+
+    .eyebrow,
+    .section-eyebrow {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font: 12px/1.4 "Segoe UI", Arial, sans-serif;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+
+    .eyebrow::before,
+    .section-eyebrow::before {
+      content: "";
+      width: 28px;
+      height: 1px;
+      background: rgba(255,255,255,0.28);
+    }
+
+    .hero-main h2 {
+      position: relative;
+      z-index: 1;
+      margin: 24px 0 0;
+      font-size: clamp(46px, 8vw, 92px);
+      line-height: 0.92;
+      letter-spacing: -0.06em;
+      max-width: 10ch;
+    }
+
+    .hero-main p {
+      position: relative;
+      z-index: 1;
+      margin: 24px 0 0;
+      max-width: 62ch;
+      color: var(--muted);
+      font: 16px/1.8 "Segoe UI", Arial, sans-serif;
+    }
+
+    .hero-actions {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 28px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 22px;
+      border-radius: 999px;
+      border: 1px solid var(--line-strong);
+      font: 700 12px/1 "Segoe UI", Arial, sans-serif;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: #f3f3f3; color: #111; }
+    .btn-secondary { background: transparent; color: var(--text); }
+
+    .hero-side {
+      flex: 0 1 360px;
+      padding: 24px;
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+
+    .quick-stat {
+      padding: 18px 18px 20px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .quick-stat span {
+      display: block;
+      font: 12px/1.4 "Segoe UI", Arial, sans-serif;
+      color: var(--soft);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .quick-stat strong {
+      display: block;
+      margin-top: 10px;
+      font-size: 34px;
+      letter-spacing: -0.04em;
+    }
+
+    .quick-stat small {
+      display: block;
+      margin-top: 8px;
+      font: 13px/1.6 "Segoe UI", Arial, sans-serif;
+      color: var(--muted);
+    }
+
+    .stats {
+      flex-wrap: wrap;
+      margin: 18px 0 0;
+    }
+
+    .card {
+      flex: 1 1 220px;
+      padding: 24px;
+    }
+
+    .card span {
+      display: block;
+      color: var(--soft);
+      font: 12px/1.4 "Segoe UI", Arial, sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .card strong {
+      display: block;
+      margin-top: 12px;
+      font-size: clamp(30px, 5vw, 52px);
+      letter-spacing: -0.05em;
+    }
+
+    .card p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font: 14px/1.7 "Segoe UI", Arial, sans-serif;
+    }
+
+    .section {
+      padding: 56px 0 0;
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+      gap: 24px;
+      align-items: end;
+      margin-bottom: 22px;
+    }
+
+    .section-head h3 {
+      margin: 16px 0 0;
+      font-size: clamp(34px, 5vw, 62px);
+      line-height: 0.96;
+      letter-spacing: -0.05em;
+    }
+
+    .section-head p {
+      margin: 0;
+      color: var(--muted);
+      font: 14px/1.8 "Segoe UI", Arial, sans-serif;
+      max-width: 42ch;
+    }
+
+    .section-grid {
+      flex-wrap: wrap;
+    }
+
+    .dept-card {
+      flex: 1 1 270px;
+      padding: 22px;
+    }
+
+    .dept-card h4 {
+      margin: 0 0 10px;
+      font-size: 26px;
+      letter-spacing: -0.03em;
+    }
+
+    .dept-card p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font: 14px/1.7 "Segoe UI", Arial, sans-serif;
+    }
+
+    .dept-card ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font: 13px/1.8 "Segoe UI", Arial, sans-serif;
+    }
+
+    .notice-grid {
+      flex-wrap: wrap;
+      align-items: stretch;
+    }
+
+    .notice-card {
+      flex: 1 1 340px;
+      padding: 22px;
+    }
+
+    .notice-card span {
+      display: block;
+      color: var(--soft);
+      font: 12px/1.4 "Segoe UI", Arial, sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .notice-card h4 {
+      margin: 12px 0 10px;
+      font-size: 24px;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+    }
+
+    .notice-card p {
+      margin: 0;
+      color: var(--muted);
+      font: 14px/1.7 "Segoe UI", Arial, sans-serif;
+    }
+
+    .campus-strip {
+      margin-top: 18px;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1px;
+      background: var(--line);
+    }
+
+    .campus-strip div {
+      background: var(--bg-soft);
+      padding: 24px;
+    }
+
+    .campus-strip strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+
+    .campus-strip p {
+      margin: 0;
+      color: var(--muted);
+      font: 13px/1.7 "Segoe UI", Arial, sans-serif;
+    }
+
+    footer {
+      padding: 56px 0 34px;
+    }
+
+    .footer-grid {
+      flex-wrap: wrap;
+      align-items: stretch;
+    }
+
+    .footer-card {
+      flex: 1 1 300px;
+      padding: 24px;
+    }
+
+    .footer-card h4 {
+      margin: 0 0 12px;
+      font-size: 24px;
+    }
+
+    .footer-card p,
+    .footer-card li {
+      color: var(--muted);
+      font: 14px/1.75 "Segoe UI", Arial, sans-serif;
+    }
+
+    .footer-card ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .footer-note {
+      margin-top: 18px;
+      color: var(--soft);
+      font: 12px/1.7 "Segoe UI", Arial, sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    @media (max-width: 900px) {
+      .section-head,
+      .nav .wrap {
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+
+      .nav-links {
+        justify-content: flex-start;
+      }
+
+      .campus-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .wrap { width: min(100% - 20px, 1180px); }
+      .hero-main,
+      .hero-side,
+      .card,
+      .dept-card,
+      .notice-card,
+      .footer-card {
+        border-radius: 22px;
+      }
+      .campus-strip {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="wrap">
+      <div class="topbar-meta">
+        <span>Established 1964</span>
+        <span>Autonomous Public Engineering Institute</span>
+      </div>
+      <div class="topbar-links">
+        <a href="#notices">Notices</a>
+        <a href="#admissions">Admissions</a>
+        <a href="#departments">Departments</a>
+      </div>
+    </div>
+  </div>
+
+  <header class="nav">
+    <div class="wrap">
+      <div class="brand">
+        <div class="brand-mark">BI</div>
+        <div class="brand-copy">
+          <h1>Bharat Institute of Applied Technology</h1>
+          <p>National Campus for Engineering and Research</p>
+        </div>
+      </div>
+      <nav class="nav-links">
+        <a href="#about">About</a>
+        <a href="#academics">Academics</a>
+        <a href="#departments">Departments</a>
+        <a href="#campus">Campus</a>
+        <a href="#notices">Notices</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero" id="about">
+      <div class="hero-grid">
+        <div class="hero-main">
+          <div class="eyebrow">Public engineering education</div>
+          <h2>Built for rigorous study, practical training, and modern research.</h2>
+          <p>
+            Bharat Institute of Applied Technology is a fictional engineering institution created as a safe website testcase. It presents the kind of admissions, academics, departments, notices, and campus information common to college websites, while remaining fully original in branding, copy, and layout.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#admissions">Admissions 2026</a>
+            <a class="btn btn-secondary" href="#notices">Latest notices</a>
+          </div>
+        </div>
+        <aside class="hero-side">
+          <div class="quick-stat">
+            <span>Institution type</span>
+            <strong>Undergraduate + Research</strong>
+            <small>Programs in engineering, applied sciences, computing, and design systems.</small>
+          </div>
+          <div class="quick-stat">
+            <span>Campus status</span>
+            <strong>Admissions Open</strong>
+            <small>Entrance pathway, hostel application, and scholarship guidance published for the coming session.</small>
+          </div>
+          <div class="quick-stat">
+            <span>Student support</span>
+            <strong>24 / 7 Access</strong>
+            <small>Library, learning labs, mentoring offices, and industry readiness cells serve the full academic calendar.</small>
+          </div>
+        </aside>
+      </div>
+
+      <div class="stats">
+        <div class="card">
+          <span>Departments</span>
+          <strong>12</strong>
+          <p>Core engineering, computing, materials, infrastructure, and applied sciences.</p>
+        </div>
+        <div class="card">
+          <span>Students</span>
+          <strong>5,400+</strong>
+          <p>Undergraduate, postgraduate, diploma, and doctoral cohorts across the campus.</p>
+        </div>
+        <div class="card">
+          <span>Faculty</span>
+          <strong>290</strong>
+          <p>Academic staff with interdisciplinary research and industry collaboration programs.</p>
+        </div>
+        <div class="card">
+          <span>Recruiters</span>
+          <strong>180+</strong>
+          <p>Annual placement and internship engagement across public and private sectors.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="academics">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">Academics</div>
+          <h3>Programs designed for engineering depth and field relevance.</h3>
+        </div>
+        <p>
+          The academic model blends theory, workshops, lab practice, field exposure, and project-based evaluation. Students move from fundamentals to specialization with structured faculty guidance and industry-linked assignments.
+        </p>
+      </div>
+
+      <div class="section-grid">
+        <article class="dept-card">
+          <h4>Undergraduate Programs</h4>
+          <p>Four-year degree pathways in mechanical systems, computing, civil infrastructure, electrical networks, and production sciences.</p>
+          <ul>
+            <li>Outcome-based curriculum review</li>
+            <li>Laboratory-intensive semesters</li>
+            <li>Capstone project evaluation</li>
+          </ul>
+        </article>
+        <article class="dept-card">
+          <h4>Postgraduate Programs</h4>
+          <p>Specialized study in advanced manufacturing, data systems, structural planning, power systems, and material engineering.</p>
+          <ul>
+            <li>Research methodology modules</li>
+            <li>Faculty-led thesis support</li>
+            <li>Industry and public-sector seminars</li>
+          </ul>
+        </article>
+        <article class="dept-card">
+          <h4>Research & Innovation</h4>
+          <p>Applied research cells encourage prototype development, process modelling, simulation, testing, and collaborative publications.</p>
+          <ul>
+            <li>Innovation grants for student teams</li>
+            <li>Open labs for supervised experiments</li>
+            <li>Technical paper and patent mentoring</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="departments">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">Departments</div>
+          <h3>Focused schools for core technical disciplines.</h3>
+        </div>
+        <p>
+          Each department maintains its own laboratories, seminar programs, academic mentors, and skill-development tracks while contributing to shared campus research and training.
+        </p>
+      </div>
+
+      <div class="notice-grid">
+        <article class="notice-card">
+          <span>School of Computing</span>
+          <h4>Computer Science and Applied Data Systems</h4>
+          <p>Programming foundations, software engineering, networks, security, web systems, and data-intensive applications.</p>
+        </article>
+        <article class="notice-card">
+          <span>School of Built Infrastructure</span>
+          <h4>Civil Engineering and Transport Planning</h4>
+          <p>Structural design, surveying, geotechnical systems, water management, and infrastructure operations.</p>
+        </article>
+        <article class="notice-card">
+          <span>School of Industrial Engineering</span>
+          <h4>Mechanical, Production, and Materials</h4>
+          <p>Manufacturing systems, process optimization, thermal systems, machine design, and materials engineering.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="campus">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">Campus life</div>
+          <h3>Residential infrastructure for study, practice, and student support.</h3>
+        </div>
+        <p>
+          The campus includes hostels, central library halls, sports facilities, workshops, digital labs, and spaces for clubs, technical societies, and cultural events.
+        </p>
+      </div>
+
+      <div class="campus-strip">
+        <div>
+          <strong>Library</strong>
+          <p>Reference collections, digital access terminals, reading rooms, and project support desks.</p>
+        </div>
+        <div>
+          <strong>Hostels</strong>
+          <p>Residential blocks with wardens, common rooms, dining halls, and student welfare support.</p>
+        </div>
+        <div>
+          <strong>Laboratories</strong>
+          <p>Discipline-specific labs for circuits, machining, materials, structures, computation, and testing.</p>
+        </div>
+        <div>
+          <strong>Placement Cell</strong>
+          <p>Mock interviews, career sessions, resume workshops, internship coordination, and recruiter outreach.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="notices">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">Notices</div>
+          <h3>Admissions, examination, and campus updates.</h3>
+        </div>
+        <p>
+          This notice layout is intentionally simple so it can be used in plagiarism-test demonstrations. It gives you stable institutional sections without replicating a real university site.
+        </p>
+      </div>
+
+      <div class="notice-grid">
+        <article class="notice-card" id="admissions">
+          <span>Admissions 2026</span>
+          <h4>Undergraduate counseling schedule released</h4>
+          <p>Applicants can review program preferences, document verification timelines, and scholarship eligibility guidelines through the admissions desk.</p>
+        </article>
+        <article class="notice-card">
+          <span>Examination Cell</span>
+          <h4>Mid-semester timetable published for all departments</h4>
+          <p>Registered students should review seating plans, practical examination slots, and internal assessment deadlines.</p>
+        </article>
+        <article class="notice-card">
+          <span>Training & Placement</span>
+          <h4>Industry interaction week opens next month</h4>
+          <p>Sessions include resume review, internship preparation, communication workshops, and technical hiring panels.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer id="contact">
+    <div class="wrap">
+      <div class="footer-grid">
+        <section class="footer-card">
+          <h4>Contact</h4>
+          <p>Bharat Institute of Applied Technology</p>
+          <p>Academic Ring Road, Sector 8</p>
+          <p>Riverview Knowledge District, India</p>
+          <p>Email: admissions@biat.edu</p>
+        </section>
+        <section class="footer-card">
+          <h4>Key links</h4>
+          <ul>
+            <li>Admissions office</li>
+            <li>Academic calendar</li>
+            <li>Scholarship support</li>
+            <li>Central library</li>
+          </ul>
+        </section>
+        <section class="footer-card">
+          <h4>Testcase note</h4>
+          <p>
+            This is a fictional institutional homepage created only for plagiarism and frontend-dispute demos. It is not affiliated with any real college or university.
+          </p>
+        </section>
+      </div>
+      <div class="footer-note">Fictional testcase site for frontend dispute demonstrations</div>
+    </div>
+  </footer>
+</body>
+</html>

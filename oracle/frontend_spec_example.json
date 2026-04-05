@@ -1,0 +1,16 @@
+{
+  "expect_status": 200,
+  "required_title": "Bounty Escrow Agent",
+  "required_text": [
+    "Trustless Task Completion",
+    "Browse Bounties"
+  ],
+  "forbidden_text": [
+    "Unhandled Runtime Error",
+    "404 Not Found"
+  ],
+  "required_paths": [
+    "/frontend/index.html"
+  ],
+  "max_response_ms": 8000
+}

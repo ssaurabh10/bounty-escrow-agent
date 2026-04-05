@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="name" content="Bounty Escrow Chain Desk" />
+  <title>Bounty Escrow · Chain desk</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg:#050505; --panel:#0c0c0c; --border:rgba(255,255,255,.14); --text:#f4f4f4; --muted:#8a8a8a; --accent:#fff; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:'IBM Plex Mono',monospace; background:var(--bg); color:var(--text); min-height:100vh; padding:28px 20px 48px; line-height:1.55; }
+    h1 { font-family:'Space Grotesk',sans-serif; font-size:1.65rem; letter-spacing:-.03em; margin:0 0 6px; }
+    .sub { color:var(--muted); font-size:.72rem; text-transform:uppercase; letter-spacing:.14em; max-width:52rem; }
+    .grid { display:grid; gap:18px; max-width:920px; margin-top:22px; }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:20px; padding:22px; }
+    .card h2 { font-family:'Space Grotesk',sans-serif; font-size:1.05rem; margin:0 0 14px; }
+    label { display:block; font-size:.65rem; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); margin-bottom:6px; }
+    input, select, textarea { width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--border); background:#080808; color:var(--text); font:inherit; }
+    textarea { min-height:120px; font-size:.8rem; }
+    .row { display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; }
+    .row > * { flex:1; min-width:140px; }
+    button {
+      font-family:inherit; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em;
+      padding:12px 16px; border-radius:12px; border:1px solid var(--border); background:var(--accent); color:#0a0a0a; cursor:pointer;
+    }
+    button.secondary { background:transparent; color:var(--text); }
+    button:disabled { opacity:.45; cursor:not-allowed; }
+    pre {
+      margin:0; padding:14px; border-radius:12px; background:#000; border:1px solid var(--border);
+      font-size:.72rem; overflow:auto; max-height:320px; white-space:pre-wrap; word-break:break-word;
+    }
+    .pill { display:inline-block; padding:4px 10px; border-radius:999px; border:1px solid var(--border); font-size:.65rem; color:var(--muted); }
+    .err { color:#f87171; font-size:.8rem; margin-top:8px; }
+    .ok { color:#86efac; font-size:.8rem; margin-top:8px; }
+    a { color:var(--accent); }
+  </style>
+</head>
+<body>
+  <h1>Chain desk</h1>
+  <p class="sub">
+    On-chain controls for the deployed BountyEscrow app. Serve the <strong>repository root</strong> (not <code>file://</code>) so
+    <code>contract.json</code> and <code>deploy_info.json</code> load. Example: <code>npx serve .</code> then open
+    <code>/frontend/chain-desk.html</code>.
+  </p>
+  <p class="sub" style="margin-top:10px;">
+    <a href="index.html">← Back to demo UI</a>
+    · LocalNet: use KMD roles (AlgoKit LocalNet). TestNet: use Pera Wallet + an app ID deployed on TestNet.
+  </p>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Network &amp; app</h2>
+      <div class="row">
+        <div>
+          <label>Network</label>
+          <select id="netSelect">
+            <option value="localnet">LocalNet (localhost:4001)</option>
+            <option value="testnet">TestNet (Algonode)</option>
+          </select>
+        </div>
+        <div>
+          <label>Application ID</label>
+          <input id="appId" type="number" min="1" placeholder="e.g. 1330" />
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px;">
+        <button type="button" class="secondary" id="btnDeployInfo">Load app ID from deploy_info.json</button>
+        <button type="button" id="btnRefresh">Refresh chain state</button>
+      </div>
+      <div id="netMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2>Wallet (signer)</h2>
+      <p class="pill" id="signerLabel">No signer selected</p>
+      <p id="walletBalance" class="sub" style="margin-top:10px; text-transform:none; letter-spacing:0; font-size:.8rem;"></p>
+      <div class="row" style="margin-top:14px;">
+        <button type="button" class="secondary" id="kmd0">KMD · Creator (index 0)</button>
+        <button type="button" class="secondary" id="kmd1">KMD · Worker (1)</button>
+        <button type="button" class="secondary" id="kmd2">KMD · Arbitrator (2)</button>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <button type="button" id="btnPera">Connect Pera Wallet</button>
+      </div>
+      <p class="sub" style="margin-top:12px; text-transform:none; letter-spacing:0; font-size:.75rem;">
+        Pera is intended for TestNet/MainNet. On LocalNet, KMD signing matches <code>deploy_config.py</code> account order.
+      </p>
+      <div id="walletMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2>Contract state</h2>
+      <pre id="stateOut">Connect to LocalNet and set App ID, then refresh.</pre>
+    </div>
+
+    <div class="card">
+      <h2>Post bounty (on-chain)</h2>
+      <p class="sub" style="text-transform:none; letter-spacing:0; font-size:.75rem; margin-bottom:14px;">
+        Uses the selected signer as creator. Reward in whole ALGO (converted to microAlgos). Deadline = now + days (Unix).
+      </p>
+      <div class="row">
+        <div><label>Title (stored off-chain in demo only — chain uses hashes)</label><input id="pbTitle" placeholder="Summary" /></div>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <div><label>Description (criteria text → hash)</label><textarea id="pbDesc" placeholder="Requirements…"></textarea></div>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <div><label>Test suite text (→ hash)</label><textarea id="pbTests" placeholder="Tests or acceptance notes…"></textarea></div>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <div><label>Reward (ALGO)</label><input id="pbReward" type="number" min="1" value="5" /></div>
+        <div><label>Deadline (+ days)</label><input id="pbDays" type="number" min="1" value="7" /></div>
+        <div>
+          <label>Arbitrator type (contract)</label>
+          <select id="pbArb">
+            <option value="auto">auto (oracle)</option>
+            <option value="human">human</option>
+          </select>
+        </div>
+      </div>
+      <button type="button" id="btnPost" style="margin-top:14px;">Sign &amp; post_bounty</button>
+      <div id="postMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2>Reopen after rejection (creator)</h2>
+      <p class="sub" style="text-transform:none; letter-spacing:0; font-size:.75rem; margin-bottom:14px;">
+        Calls <code>reopen_after_rejection</code> when status is <strong>REJECTED</strong>, the dispute window has ended (5 min on LocalNet demo; same as <code>AUTO_RELEASE_DELAY</code>),
+        and the bounty deadline has not passed. Escrow stays in the app; another account can <code>accept_bounty</code>.
+      </p>
+      <button type="button" id="btnReopen">Sign &amp; reopen_after_rejection</button>
+      <div id="reopenMsg"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/algosdk@2.7.0/dist/browser/algosdk.min.js"></script>
+  <script src="src/algoClient.js"></script>
+  <script>
+    const C = window.algoClient;
+    let currentAccount = null;
+    let peraWallet = null;
+
+    const el = (id) => document.getElementById(id);
+
+    function setMsg(id, text, ok) {
+      const n = el(id);
+      n.textContent = text || "";
+      n.className = text ? (ok ? "ok" : "err") : "";
+    }
+
+    async function refreshWalletBalanceUi() {
+      const out = el("walletBalance");
+      if (!out) return;
+      if (!currentAccount || !currentAccount.address) {
+        out.textContent = "";
+        return;
+      }
+      out.textContent = "Balance: …";
+      try {
+        const algos = await C.getAccountBalance(currentAccount.address);
+        const s =
+          typeof algos === "number" && Number.isFinite(algos)
+            ? algos.toLocaleString(undefined, { maximumFractionDigits: 6, minimumFractionDigits: 0 })
+            : String(algos);
+        out.textContent = "On-chain balance: " + s + " ALGO";
+      } catch (e) {
+        out.textContent = "Balance: (could not read — is Algod up?)";
+      }
+    }
+
+    function applyNetwork() {
+      const mode = el("netSelect").value;
+      if (mode === "testnet") {
+        C.applyTestnetAlgod();
+        setMsg("netMsg", "Algod: TestNet (Algonode). Use a TestNet app ID.", true);
+      } else {
+        C.applyLocalnetAlgod();
+        setMsg("netMsg", "Algod: LocalNet. Start Docker + algokit localnet start.", true);
+      }
+    }
+
+    el("netSelect").addEventListener("change", () => {
+      applyNetwork();
+      peraWallet = null;
+      currentAccount = null;
+      el("signerLabel").textContent = "No signer selected";
+      el("walletBalance").textContent = "";
+    });
+
+    async function sha256Hex(text) {
+      const bytes = new TextEncoder().encode(text || "");
+      const buf = await crypto.subtle.digest("SHA-256", bytes);
+      return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    el("btnDeployInfo").addEventListener("click", async () => {
+      try {
+        const url = new URL("../smart_contracts/bounty_escrow/deploy_info.json", window.location.href);
+        const r = await fetch(url.href);
+        if (!r.ok) throw new Error(r.status + " " + r.statusText);
+        const j = await r.json();
+        if (j.app_id) el("appId").value = j.app_id;
+        setMsg("netMsg", "Loaded deploy_info.json", true);
+      } catch (e) {
+        setMsg("netMsg", String(e.message || e), false);
+      }
+    });
+
+    function getAppId() {
+      const v = parseInt(el("appId").value, 10);
+      return Number.isFinite(v) && v > 0 ? v : null;
+    }
+
+    el("btnRefresh").addEventListener("click", async () => {
+      const appId = getAppId();
+      if (!appId) {
+        setMsg("netMsg", "Set a valid App ID first.", false);
+        return;
+      }
+      try {
+        const state = await C.getBountyState(appId);
+        el("stateOut").textContent = JSON.stringify(state, null, 2);
+        setMsg("netMsg", "State updated.", true);
+      } catch (e) {
+        el("stateOut").textContent = String(e.message || e);
+        setMsg("netMsg", "Failed to read state — is Algod running?", false);
+      }
+    });
+
+    async function connectKmd(index) {
+      try {
+        const accounts = await C.getKMDAccounts();
+        if (!accounts[index]) throw new Error("KMD account index " + index + " not found");
+        currentAccount = C.wrapKmdAccount(accounts[index]);
+        el("signerLabel").textContent = "KMD · " + currentAccount.address.slice(0, 6) + "…" + currentAccount.address.slice(-4);
+        setMsg("walletMsg", "Signer ready (KMD index " + index + ").", true);
+        await refreshWalletBalanceUi();
+      } catch (e) {
+        setMsg("walletMsg", String(e.message || e), false);
+      }
+    }
+
+    el("kmd0").addEventListener("click", () => connectKmd(0));
+    el("kmd1").addEventListener("click", () => connectKmd(1));
+    el("kmd2").addEventListener("click", () => connectKmd(2));
+
+    el("btnPera").addEventListener("click", async () => {
+      try {
+        const mod = await import("https://esm.sh/@perawallet/connect@1.3.4?bundle");
+        const chainId =
+          el("netSelect").value === "testnet" ? C.PERA_CHAIN_ID.TESTNET : C.PERA_CHAIN_ID.ALL;
+        peraWallet = new mod.PeraWalletConnect({ chainId });
+        const accs = await peraWallet.connect();
+        if (!accs.length) throw new Error("No accounts returned");
+        currentAccount = C.wrapPeraAccount(peraWallet, accs[0]);
+        el("signerLabel").textContent = "Pera · " + currentAccount.address.slice(0, 6) + "…" + currentAccount.address.slice(-4);
+        setMsg("walletMsg", "Pera connected. Approve each transaction group in the wallet.", true);
+        await refreshWalletBalanceUi();
+      } catch (e) {
+        if (e?.data?.type === "CONNECT_MODAL_CLOSED") return;
+        setMsg("walletMsg", String(e.message || e), false);
+      }
+    });
+
+    el("btnPost").addEventListener("click", async () => {
+      const appId = getAppId();
+      if (!appId || !currentAccount) {
+        setMsg("postMsg", "Need App ID and signer.", false);
+        return;
+      }
+      const desc = el("pbDesc").value.trim();
+      if (!desc) {
+        setMsg("postMsg", "Description required (for criteria hash).", false);
+        return;
+      }
+      try {
+        setMsg("postMsg", "Building transaction group…", true);
+        const criteriaHash = await sha256Hex(desc);
+        const testSuiteHash = await sha256Hex(el("pbTests").value);
+        const rewardAlgos = parseFloat(el("pbReward").value, 10);
+        const days = parseInt(el("pbDays").value, 10);
+        if (!Number.isFinite(rewardAlgos) || rewardAlgos <= 0) throw new Error("Invalid reward");
+        const micro = Math.round(rewardAlgos * 1e6);
+        const status = await C.getBountyState(appId).catch(() => ({ status: 0 }));
+        if (status.creator) {
+          setMsg("postMsg", "This app already has a bounty posted (creator set). Deploy a fresh app or use another app ID.", false);
+          return;
+        }
+        const deadlineUnix = Math.floor(Date.now() / 1000) + days * 86400;
+        const now = Math.floor(Date.now() / 1000);
+        if (deadlineUnix <= now) {
+          setMsg("postMsg", "Deadline must be in the future.", false);
+          return;
+        }
+        const accounts = await C.getKMDAccounts().catch(() => []);
+        const arbAddr = accounts[2]?.address || currentAccount.address;
+        await C.postBounty({
+          appId,
+          creatorAccount: currentAccount,
+          rewardMicroAlgos: micro,
+          criteriaHash,
+          testSuiteHash,
+          deadlineUnix,
+          arbitratorType: el("pbArb").value,
+          arbitratorAddress: arbAddr,
+        });
+        setMsg("postMsg", "post_bounty confirmed.", true);
+        el("btnRefresh").click();
+      } catch (e) {
+        setMsg("postMsg", String(e.message || e), false);
+      }
+    });
+
+    el("btnReopen").addEventListener("click", async () => {
+      const appId = getAppId();
+      if (!appId || !currentAccount) {
+        setMsg("reopenMsg", "Need App ID and signer (use KMD · Creator).", false);
+        return;
+      }
+      try {
+        setMsg("reopenMsg", "Signing…", true);
+        await C.reopenAfterRejection({ appId, creatorAccount: currentAccount });
+        setMsg("reopenMsg", "reopen_after_rejection confirmed.", true);
+        el("btnRefresh").click();
+      } catch (e) {
+        setMsg("reopenMsg", String(e.message || e), false);
+      }
+    });
+
+    applyNetwork();
+  </script>
+</body>
+</html>

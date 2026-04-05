@@ -1,0 +1,24 @@
+{
+  "source": "fallback",
+  "tests": [
+    {
+      "name": "Health endpoint is up",
+      "method": "GET",
+      "path": "/health",
+      "expected_status": 200
+    },
+    {
+      "name": "Protected admin endpoint blocks anonymous access",
+      "method": "POST",
+      "path": "/menu",
+      "expected_status": 401
+    },
+    {
+      "name": "Order endpoint validates payload",
+      "method": "POST",
+      "path": "/orders",
+      "expected_status": 400
+    }
+  ],
+  "note": "OPENAI_API_KEY not configured or AI call failed. Generated deterministic test cases."
+}

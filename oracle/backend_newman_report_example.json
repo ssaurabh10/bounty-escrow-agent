@@ -1,0 +1,20 @@
+{
+  "run": {
+    "stats": {
+      "assertions": {
+        "total": 14,
+        "failed": 1
+      }
+    },
+    "failures": [
+      {
+        "source": {
+          "name": "Create order"
+        },
+        "error": {
+          "message": "Expected status code 201 but received 500"
+        }
+      }
+    ]
+  }
+}

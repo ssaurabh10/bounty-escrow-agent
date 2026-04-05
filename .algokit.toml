@@ -1,0 +1,9 @@
+[project]
+type = "contract"
+name = "BountyEscrowAgent"
+artifacts = "smart_contracts/bounty_escrow/artifacts"
+
+# Deploy via: algokit project deploy localnet
+# (from repo root). AlgoKit loads .env and .env.localnet automatically.
+[project.deploy]
+command = "python smart_contracts/bounty_escrow/deploy_config.py"

@@ -1,0 +1,18 @@
+{
+  "verdict": "FAIL",
+  "failing_gates": [
+    "flake8",
+    "pylint",
+    "mypy",
+    "pytest",
+    "security"
+  ],
+  "states": {
+    "flake8": "skipped",
+    "pylint": "skipped",
+    "mypy": "skipped",
+    "pytest": "skipped",
+    "security": "skipped",
+    "ai_tests": "skipped"
+  }
+}
